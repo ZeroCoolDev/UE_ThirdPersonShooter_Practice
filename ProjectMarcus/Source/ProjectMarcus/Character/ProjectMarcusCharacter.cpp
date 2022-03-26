@@ -37,6 +37,36 @@ void AProjectMarcusCharacter::BeginPlay()
 	Super::BeginPlay();
 }
 
+void AProjectMarcusCharacter::MoveForward(float Value)
+{
+	if (Controller && Value != 0.f)
+	{
+		// Get the rotation around the up (z) axis, find fwd vector, move in that direction
+		const FRotator Rotation(Controller->GetControlRotation());
+		const FRotator YawRotation(0.f, Rotation.Yaw, 0.f); // yaw = rotation around up/z axis
+
+		// find out the direction the controller is pointing fwd
+		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X)); // EAxis::X = forward direction
+
+		AddMovementInput(Direction, Value);
+	}
+}
+
+void AProjectMarcusCharacter::MoveRight(float Value)
+{
+	if (Controller && Value != 0.f)
+	{
+		// Get the rotation around the up (z) axis, find right vector, move in that direction
+		const FRotator Rotation(Controller->GetControlRotation());
+		const FRotator YawRotation(0.f, Rotation.Yaw, 0.f); // yaw = rotation around up/z axis
+
+		// find out the direction the controller is pointing right
+		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y)); // EAxis::Y = right direction
+
+		AddMovementInput(Direction, Value);
+	}
+}
+
 // Called every frame
 void AProjectMarcusCharacter::Tick(float DeltaTime)
 {
@@ -48,6 +78,10 @@ void AProjectMarcusCharacter::Tick(float DeltaTime)
 void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
+	if (ensure(PlayerInputComponent))
+	{
+		PlayerInputComponent->BindAxis("MoveForward", this, &AProjectMarcusCharacter::MoveForward);
+		PlayerInputComponent->BindAxis("MoveRight", this, &AProjectMarcusCharacter::MoveRight);
+	}
 }
 
