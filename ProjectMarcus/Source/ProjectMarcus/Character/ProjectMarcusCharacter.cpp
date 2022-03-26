@@ -2,6 +2,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 
 // Sets default values
 AProjectMarcusCharacter::AProjectMarcusCharacter() :
@@ -98,7 +100,10 @@ void AProjectMarcusCharacter::LookUpAtRate(float Rate)
 
 void AProjectMarcusCharacter::FireWeapon()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Weapon has fired. pew!"));
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySound2D(this, FireSound);
+	}
 }
 
 // Called every frame
