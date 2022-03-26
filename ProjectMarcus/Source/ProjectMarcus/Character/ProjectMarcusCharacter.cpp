@@ -92,10 +92,19 @@ void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 	if (ensure(PlayerInputComponent))
 	{
+		// Movement
 		PlayerInputComponent->BindAxis("MoveForward", this, &AProjectMarcusCharacter::MoveForward);
 		PlayerInputComponent->BindAxis("MoveRight", this, &AProjectMarcusCharacter::MoveRight);
+		
+		// Look rotations
 		PlayerInputComponent->BindAxis("TurnRate", this, &AProjectMarcusCharacter::TurnAtRate);
 		PlayerInputComponent->BindAxis("LookUpRate", this, &AProjectMarcusCharacter::LookUpAtRate);
+		PlayerInputComponent->BindAxis("TurnMouse", this, &APawn::AddControllerYawInput);
+		PlayerInputComponent->BindAxis("LookUpMouse", this, &APawn::AddControllerPitchInput);
+
+		// Jump
+		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
+		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ACharacter::StopJumping);
 	}
 }
 
