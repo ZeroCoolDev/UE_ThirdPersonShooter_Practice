@@ -32,7 +32,7 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bIsInAir;
 
-	// Indicates if the character is movement (acceleration > 0)
+	// Indicates if the character is accelerating (acceleration > 0)
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool bIsMoving;
+	bool bIsAccelerating;
 };

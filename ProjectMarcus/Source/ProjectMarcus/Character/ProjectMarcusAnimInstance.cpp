@@ -21,7 +21,7 @@ void UProjectMarcusAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		if (ensure(MoveComp))
 		{
 			bIsInAir = MoveComp->IsFalling();
-			bIsMoving = MoveComp->GetCurrentAcceleration().Size() > 0.f;
+			bIsAccelerating = MoveComp->GetCurrentAcceleration().Size() > 0.f;
 		}
 	}
 }
