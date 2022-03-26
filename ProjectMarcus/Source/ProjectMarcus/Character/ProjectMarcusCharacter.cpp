@@ -3,7 +3,9 @@
 #include "Camera/CameraComponent.h"
 
 // Sets default values
-AProjectMarcusCharacter::AProjectMarcusCharacter()
+AProjectMarcusCharacter::AProjectMarcusCharacter() :
+	BaseTurnRate(45.f),
+	BaseLookUpRate(45.f)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -67,6 +69,16 @@ void AProjectMarcusCharacter::MoveRight(float Value)
 	}
 }
 
+void AProjectMarcusCharacter::TurnAtRate(float Rate)
+{
+	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
+}
+
+void AProjectMarcusCharacter::LookUpAtRate(float Rate)
+{
+	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
+}
+
 // Called every frame
 void AProjectMarcusCharacter::Tick(float DeltaTime)
 {
@@ -82,6 +94,8 @@ void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 	{
 		PlayerInputComponent->BindAxis("MoveForward", this, &AProjectMarcusCharacter::MoveForward);
 		PlayerInputComponent->BindAxis("MoveRight", this, &AProjectMarcusCharacter::MoveRight);
+		PlayerInputComponent->BindAxis("TurnRate", this, &AProjectMarcusCharacter::TurnAtRate);
+		PlayerInputComponent->BindAxis("LookUpRate", this, &AProjectMarcusCharacter::LookUpAtRate);
 	}
 }
 

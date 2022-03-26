@@ -25,6 +25,18 @@ protected:
 	// Handles side to side input
 	void MoveRight(float Value);
 
+	/**
+	 * Called via input to turn at a given rate (effects yaw)
+	 * @param Rate is a normalized rate, i.e. 1.0 = 100%, 0.5 = 50% of desired turn rate.
+	 */
+	void TurnAtRate(float Rate);
+
+	/**
+	 * Called via input to look up/down at a given rate (effects pitch)
+	 * @param Rate is a normalized rate, i.e. 1.0 = 100%, 0.5 = 50% of desired look turn rate.
+	 */
+	void LookUpAtRate(float Rate);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -40,6 +52,14 @@ private:
 	// Camera that follows the character
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCam;
+
+	// Base turn rate in deg/sec. Other scaling may effect final turn rate (pressure sensitivity of the thumbstick for ex)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float BaseTurnRate = 1.f;
+
+	// Base look up/down rate in deg/sec. Other scaling may effect final turn rate (pressure sensitivity of the thumbstick for ex)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	float BaseLookUpRate = 1.f;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }
