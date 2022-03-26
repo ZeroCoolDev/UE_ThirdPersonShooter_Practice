@@ -43,10 +43,9 @@ AProjectMarcusCharacter::AProjectMarcusCharacter() :
 	if (ensure(MoveComp))
 	{
 		MoveComp->bOrientRotationToMovement = true; // Character moves in the direction of input
-		// TODO: move these into BP editable params for designers
-		MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f); // determines how fast we rotate. lower = slow rotation. higher = fast. negative = snap instantly
+		MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f); // only rotate on the yaw at this rotation rate
 		MoveComp->JumpZVelocity = 600.f; // how high the character jumps
-		MoveComp->AirControl = 0.5; // 0 = no control. 1 = full control at max speed
+		MoveComp->AirControl = 0.2f;
 	}
 }
 
@@ -96,11 +95,6 @@ void AProjectMarcusCharacter::LookUpAtRate(float Rate)
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
 }
 
-void AProjectMarcusCharacter::FireWeapon()
-{
-	UE_LOG(LogTemp, Warning, TEXT("Weapon has fired. pew!"));
-}
-
 // Called every frame
 void AProjectMarcusCharacter::Tick(float DeltaTime)
 {
@@ -127,9 +121,6 @@ void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		// Jump
 		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ACharacter::StopJumping);
-
-		// Weapon
-		PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::FireWeapon);
 	}
 }
 
