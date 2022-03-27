@@ -5,6 +5,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Sound/SoundCue.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values
 AProjectMarcusCharacter::AProjectMarcusCharacter() :
@@ -107,11 +108,11 @@ void AProjectMarcusCharacter::FireWeapon()
 		UGameplayStatics::PlaySound2D(this, FireSound);
 	}
 
-	// Muzzle Flash VFX
-	// Find the socket at the tip of the barrel with its current position and rotation and spawn a particle system
+	// Muzzle Flash VFX + Linetracing + Kickback Anim
 	const USkeletalMeshComponent* CharMesh = GetMesh();
 	if (CharMesh)
 	{
+		// Find the socket at the tip of the barrel with its current position and rotation and spawn a particle system
 		const USkeletalMeshSocket* BarrelSocket = CharMesh->GetSocketByName("BarrelSocket");
 		if (BarrelSocket)
 		{
@@ -120,9 +121,30 @@ void AProjectMarcusCharacter::FireWeapon()
 			if (MuzzleFlash)
 			{
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+				
+				if (GetWorld())
+				{
+					FHitResult FireHit;
+					const FVector FireStart = SocketTransform.GetLocation();
+
+					// Get the vector pointing outwards from the barrel + a very far distance away
+					const FQuat SocketRotation = SocketTransform.GetRotation();
+					const FVector RotationAxis = SocketRotation.GetAxisX() * 50'000.f;
+
+					const FVector FireEnd = FireStart + RotationAxis;
+
+					GetWorld()->LineTraceSingleByChannel(FireHit, FireStart, FireEnd, ECollisionChannel::ECC_Visibility);
+					// Check if we hit anything
+					if (FireHit.bBlockingHit)
+					{
+						DrawDebugLine(GetWorld(), FireStart, FireHit.Location, FColor::Red, false, 2.f);
+						DrawDebugPoint(GetWorld(), FireHit.Location, 5.f, FColor::Red, false, 2.f);
+					}
+				}
 			}
 		}
 
+		// Play Kickback animation
 		UAnimInstance* AnimInstance = CharMesh->GetAnimInstance();
 		if (AnimInstance && HipFireMontage)
 		{
