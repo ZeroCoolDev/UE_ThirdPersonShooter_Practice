@@ -6,6 +6,7 @@
 #include "Engine/SkeletalMeshSocket.h"
 #include "Sound/SoundCue.h"
 #include "DrawDebugHelpers.h"
+#include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 AProjectMarcusCharacter::AProjectMarcusCharacter() :
@@ -134,16 +135,33 @@ void AProjectMarcusCharacter::FireWeapon()
 
 					const FVector FireEnd = FireStart + RotationAxis;
 
+					FVector BulletTrailEndPoint = FireEnd;
+
 					GetWorld()->LineTraceSingleByChannel(FireHit, FireStart, FireEnd, ECollisionChannel::ECC_Visibility);
-					// Check if we hit anything
+					
+					// Spawn Impact Particles
 					if (FireHit.bBlockingHit)
 					{
-						DrawDebugLine(GetWorld(), FireStart, FireHit.Location, FColor::Red, false, 2.f);
-						DrawDebugPoint(GetWorld(), FireHit.Location, 5.f, FColor::Red, false, 2.f);
+						//DrawDebugLine(GetWorld(), FireStart, FireHit.Location, FColor::Red, false, 2.f);
+						//DrawDebugPoint(GetWorld(), FireHit.Location, 5.f, FColor::Red, false, 2.f);
 						
+						BulletTrailEndPoint = FireHit.Location;
+
 						if (BulletImpactParticles)
 						{
 							UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, FireHit.Location);
+						}
+					}
+
+					// Spawn Bullet Trail Particles
+					if (BulletTrailParticles)
+					{
+						// Start at the muzzle socket
+						UParticleSystemComponent* BulletTrail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform); // SocketTransform due to param needing an FTransform but essentailly the starting location is the same as FireStart
+						if (BulletTrail)
+						{
+							// End either at impact point or as far as our shot goes
+							BulletTrail->SetVectorParameter("Target", BulletTrailEndPoint);
 						}
 					}
 				}

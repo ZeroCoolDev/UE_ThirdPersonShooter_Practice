@@ -79,6 +79,10 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* BulletImpactParticles;
 
+	// Smoke trail for bullets
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UParticleSystem* BulletTrailParticles;
+
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCam; }
