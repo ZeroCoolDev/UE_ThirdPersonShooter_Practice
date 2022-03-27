@@ -3,6 +3,7 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Engine/SkeletalMeshSocket.h"
 #include "Sound/SoundCue.h"
 
 // Sets default values
@@ -100,9 +101,34 @@ void AProjectMarcusCharacter::LookUpAtRate(float Rate)
 
 void AProjectMarcusCharacter::FireWeapon()
 {
+	// SFX
 	if (FireSound)
 	{
 		UGameplayStatics::PlaySound2D(this, FireSound);
+	}
+
+	// Muzzle Flash VFX
+	// Find the socket at the tip of the barrel with its current position and rotation and spawn a particle system
+	const USkeletalMeshComponent* CharMesh = GetMesh();
+	if (CharMesh)
+	{
+		const USkeletalMeshSocket* BarrelSocket = CharMesh->GetSocketByName("BarrelSocket");
+		if (BarrelSocket)
+		{
+			const FTransform SocketTransform = BarrelSocket->GetSocketTransform(CharMesh);
+
+			if (MuzzleFlash)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+			}
+		}
+
+		UAnimInstance* AnimInstance = CharMesh->GetAnimInstance();
+		if (AnimInstance && HipFireMontage)
+		{
+			AnimInstance->Montage_Play(HipFireMontage);
+			AnimInstance->Montage_JumpToSection("StartFire");
+		}
 	}
 }
 
