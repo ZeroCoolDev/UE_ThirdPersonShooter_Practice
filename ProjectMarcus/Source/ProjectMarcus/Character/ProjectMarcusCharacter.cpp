@@ -108,7 +108,7 @@ void AProjectMarcusCharacter::FireWeapon()
 		UGameplayStatics::PlaySound2D(this, FireSound);
 	}
 
-	// Muzzle Flash VFX + Linetracing + Kickback Anim
+	// Muzzle Flash VFX + Linetracing/Collision + Impact Particles + Kickback Anim
 	const USkeletalMeshComponent* CharMesh = GetMesh();
 	if (CharMesh)
 	{
@@ -122,6 +122,7 @@ void AProjectMarcusCharacter::FireWeapon()
 			{
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
 				
+				// Linetrace + Collision checking + Impact Particles
 				if (GetWorld())
 				{
 					FHitResult FireHit;
@@ -139,6 +140,11 @@ void AProjectMarcusCharacter::FireWeapon()
 					{
 						DrawDebugLine(GetWorld(), FireStart, FireHit.Location, FColor::Red, false, 2.f);
 						DrawDebugPoint(GetWorld(), FireHit.Location, 5.f, FColor::Red, false, 2.f);
+						
+						if (BulletImpactParticles)
+						{
+							UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, FireHit.Location);
+						}
 					}
 				}
 			}
