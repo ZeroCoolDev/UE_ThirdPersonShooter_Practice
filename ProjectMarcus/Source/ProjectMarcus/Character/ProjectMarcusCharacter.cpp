@@ -25,6 +25,7 @@ AProjectMarcusCharacter::AProjectMarcusCharacter() :
 			CameraArm->SetupAttachment(RootComponent);
 			CameraArm->TargetArmLength = 300.f; // camera follows at this distance behind the character
 			CameraArm->bUsePawnControlRotation = true; // rotate the arm based on the controller
+			CameraArm->SocketOffset = FVector(0.f, 50.f, 50.f); //offsets the character
 	
 			if (FollowCam == nullptr)
 			{
@@ -40,14 +41,14 @@ AProjectMarcusCharacter::AProjectMarcusCharacter() :
 
 	// Don't rotate the character when the controller rotates. We only want the controller to rotate the camera
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
 	// The character rotation is dependent on the movement component
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
 	if (ensure(MoveComp))
 	{
-		MoveComp->bOrientRotationToMovement = true; // Character moves in the direction of input
+		MoveComp->bOrientRotationToMovement = false; // Character moves in the direction of input
 		// TODO: move these into BP editable params for designers
 		MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f); // determines how fast we rotate. lower = slow rotation. higher = fast. negative = snap instantly
 		MoveComp->JumpZVelocity = 600.f; // how high the character jumps
