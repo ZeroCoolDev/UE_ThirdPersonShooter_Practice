@@ -36,11 +36,11 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bIsAccelerating;
 
-	// Offset Yaw used for strafing
+	// Difference between [-180,180] the aim direction and movement direction. Used for strafing animations
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float MovementOffset;
+		float AimMovementDiff;
 
-	// Difference between aim direction and movement direction
+	// strafing data in the last frame used for strafe ending animations
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float AimMovementDiff;
+	float LastAimMovementDiff;
 };

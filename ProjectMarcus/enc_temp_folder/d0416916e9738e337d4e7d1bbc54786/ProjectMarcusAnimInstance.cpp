@@ -29,28 +29,24 @@ void UProjectMarcusAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		// What is the direction the controller is pointing in
 		FRotator AimRotation = PMCharacter->GetBaseAimRotation();
 		FRotator MovementRotation = UKismetMathLibrary::MakeRotFromX(PMCharacter->GetVelocity()); // rotation from the world X direction based on some direction vector
-		AimMovementDiff = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
-
-		// If we're moving, store the this frames movement so on the frame we stop moving, we know which direction we were headed to play the correct stop animation
-		if (PMCharacter->GetVelocity().Size() > 0.f)
-		{
-			LastAimMovementDiff = AimMovementDiff;
-		}
+		MovementOffset = UKismetMathLibrary::NormalizedDeltaRotator(MovementRotation, AimRotation).Yaw;
 		
-		// TODO: Swap this out for MovementOffset once you figure out how to indicate between left and right when DOT is 0...
+
+		// Can definitely just use DOT instead (but have to compensate for 0 in both right and left, so need to account for that)
 		FVector PlayerLookDir = PMCharacter->GetActorForwardVector().GetSafeNormal();
 		FVector MovementDir = PMCharacter->GetVelocity().GetSafeNormal();
-		//AimMovementDiff = FVector::DotProduct(PlayerLookDir, MovementDir); 		
+		AimMovementDiff = FVector::DotProduct(PlayerLookDir, MovementDir); 		
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Red, FString::Printf(TEXT("Base Aim Rotation [%f]\nMovement Rotation [%f]\nAimMovementDiff [%f]\n\nPlayerLookDir (%f, %f)\nMovementDir (%f, %f)"), 
+			GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Red, FString::Printf(TEXT("Base Aim Rotation [%f]\nMovement Rotation [%f]\nMovementOffset [%f]\n\nPlayerLookDir (%f, %f)\nMovementDir (%f, %f)\nAimMovementDiff [%f]"), 
 																					AimRotation.Yaw, 
 																					MovementRotation.Yaw, 
-																					AimMovementDiff,
+																					MovementOffset,
 																					PlayerLookDir.X,
 																					PlayerLookDir.Y, 
 																					MovementDir.X,
-																					MovementDir.Y));
+																					MovementDir.Y,
+																					AimMovementDiff));
 		}
 	}
 }
