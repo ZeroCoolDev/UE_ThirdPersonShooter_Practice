@@ -123,46 +123,61 @@ void AProjectMarcusCharacter::FireWeapon()
 			if (MuzzleFlash)
 			{
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
-				
-				// Linetrace + Collision checking + Impact Particles
-				if (GetWorld())
+			}
+
+			// Linetrace + Collision checking + Impact Particles
+			if (GetWorld())
+			{
+				// Get current viewport size
+				FVector2D ViewportSize;
+				if (GEngine && GEngine->GameViewport)
 				{
-					FHitResult FireHit;
-					const FVector FireStart = SocketTransform.GetLocation();
+					GEngine->GameViewport->GetViewportSize(ViewportSize);
+				}
 
-					// Get the vector pointing outwards from the barrel + a very far distance away
-					const FQuat SocketRotation = SocketTransform.GetRotation();
-					const FVector RotationAxis = SocketRotation.GetAxisX() * 50'000.f;
+				// Get the cross hair local position (screen space)
+				FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2); // Exact middle of the screen;
+				CrosshairLocation.Y -= 50.f; // adjust to match HUD
 
-					const FVector FireEnd = FireStart + RotationAxis;
+				// Translate to world position
+				FVector CrosshairWorldPos;
+				FVector CrosshairWorldDir;
+				bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+					UGameplayStatics::GetPlayerController(this, LOCAL_USER_NUM),
+					CrosshairLocation,
+					CrosshairWorldPos,
+					CrosshairWorldDir // Forward vector (so outwards from the viewport)
+				);
 
-					FVector BulletTrailEndPoint = FireEnd;
+				if (bScreenToWorld)
+				{
+					FHitResult BulletTraceHit;
+					const FVector BulletStart(CrosshairWorldPos);
+					const FVector BulletEnd(CrosshairWorldPos + (CrosshairWorldDir * 50'000.f));
 
-					GetWorld()->LineTraceSingleByChannel(FireHit, FireStart, FireEnd, ECollisionChannel::ECC_Visibility);
-					
-					// Spawn Impact Particles
-					if (FireHit.bBlockingHit)
+					// Default bullet trail will just go as far as the bullet if it hits nothing
+					FVector BulletTrailEndPoint(BulletEnd);
+					GetWorld()->LineTraceSingleByChannel(BulletTraceHit, BulletStart, BulletEnd, ECollisionChannel::ECC_Visibility);
+
+					if (BulletTraceHit.bBlockingHit)
 					{
-						//DrawDebugLine(GetWorld(), FireStart, FireHit.Location, FColor::Red, false, 2.f);
-						//DrawDebugPoint(GetWorld(), FireHit.Location, 5.f, FColor::Red, false, 2.f);
-						
-						BulletTrailEndPoint = FireHit.Location;
+						// Otherwise set it to exactly whatever we impacted with
+						BulletTrailEndPoint = BulletTraceHit.Location;
 
+						// Spawn impact particles
 						if (BulletImpactParticles)
 						{
-							UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, FireHit.Location);
+							UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, BulletTraceHit.Location);
 						}
-					}
 
-					// Spawn Bullet Trail Particles
-					if (BulletTrailParticles)
-					{
-						// Start at the muzzle socket
-						UParticleSystemComponent* BulletTrail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform); // SocketTransform due to param needing an FTransform but essentailly the starting location is the same as FireStart
-						if (BulletTrail)
+						// Spawn trail particles
+						if (BulletTrailParticles)
 						{
-							// End either at impact point or as far as our shot goes
-							BulletTrail->SetVectorParameter("Target", BulletTrailEndPoint);
+							UParticleSystemComponent* Trail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform);
+							if (Trail)
+							{
+								Trail->SetVectorParameter("Target", BulletTrailEndPoint); // makes it so the particles appear in a line from TraceStart  to TrailEndPoint
+							}
 						}
 					}
 				}

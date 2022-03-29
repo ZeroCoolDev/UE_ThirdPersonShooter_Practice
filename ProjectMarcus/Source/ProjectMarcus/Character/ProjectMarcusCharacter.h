@@ -6,6 +6,8 @@
 #include "GameFramework/Character.h"
 #include "ProjectMarcusCharacter.generated.h"
 
+#define LOCAL_USER_NUM 0
+
 UCLASS()
 class PROJECTMARCUS_API AProjectMarcusCharacter : public ACharacter
 {

@@ -5,6 +5,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Engine/SkeletalMeshSocket.h"
 #include "Sound/SoundCue.h"
+#include "DrawDebugHelpers.h"
+#include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
 AProjectMarcusCharacter::AProjectMarcusCharacter() :
@@ -23,6 +25,7 @@ AProjectMarcusCharacter::AProjectMarcusCharacter() :
 			CameraArm->SetupAttachment(RootComponent);
 			CameraArm->TargetArmLength = 300.f; // camera follows at this distance behind the character
 			CameraArm->bUsePawnControlRotation = true; // rotate the arm based on the controller
+			CameraArm->SocketOffset = FVector(0.f, 50.f, 50.f); //offsets the character
 	
 			if (FollowCam == nullptr)
 			{
@@ -38,14 +41,14 @@ AProjectMarcusCharacter::AProjectMarcusCharacter() :
 
 	// Don't rotate the character when the controller rotates. We only want the controller to rotate the camera
 	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
+	bUseControllerRotationYaw = true;
 	bUseControllerRotationRoll = false;
 
 	// The character rotation is dependent on the movement component
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
 	if (ensure(MoveComp))
 	{
-		MoveComp->bOrientRotationToMovement = true; // Character moves in the direction of input
+		MoveComp->bOrientRotationToMovement = false; // Character moves in the direction of input
 		// TODO: move these into BP editable params for designers
 		MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f); // determines how fast we rotate. lower = slow rotation. higher = fast. negative = snap instantly
 		MoveComp->JumpZVelocity = 600.f; // how high the character jumps
@@ -101,15 +104,17 @@ void AProjectMarcusCharacter::LookUpAtRate(float Rate)
 
 void AProjectMarcusCharacter::FireWeapon()
 {
+	// SFX
 	if (FireSound)
 	{
 		UGameplayStatics::PlaySound2D(this, FireSound);
 	}
 
-	// Find the socket at the tip of the barrel with its current position and rotation and spawn a particle system
+	// Muzzle Flash VFX + Linetracing/Collision + Impact Particles + Kickback Anim
 	const USkeletalMeshComponent* CharMesh = GetMesh();
 	if (CharMesh)
 	{
+		// Find the socket at the tip of the barrel with its current position and rotation and spawn a particle system
 		const USkeletalMeshSocket* BarrelSocket = CharMesh->GetSocketByName("BarrelSocket");
 		if (BarrelSocket)
 		{
@@ -119,6 +124,72 @@ void AProjectMarcusCharacter::FireWeapon()
 			{
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
 			}
+
+			// Linetrace + Collision checking + Impact Particles
+			if (GetWorld())
+			{
+				// Get current viewport size
+				FVector2D ViewportSize;
+				if (GEngine && GEngine->GameViewport)
+				{
+					GEngine->GameViewport->GetViewportSize(ViewportSize);
+				}
+
+				// Get the cross hair local position (screen space)
+				FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2); // Exact middle of the screen;
+				CrosshairLocation.Y -= 50.f; // adjust to match HUD
+
+				// Translate to world position
+				FVector CrosshairWorldPos;
+				FVector CrosshairWorldDir;
+				bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+					UGameplayStatics::GetPlayerController(this, LOCAL_USER_NUM),
+					CrosshairLocation,
+					CrosshairWorldPos,
+					CrosshairWorldDir // Forward vector (so outwards from the viewport)
+				);
+
+				if (bScreenToWorld)
+				{
+					FHitResult BulletTraceHit;
+					const FVector BulletStart(CrosshairWorldPos);
+					const FVector BulletEnd(CrosshairWorldPos + (CrosshairWorldDir * 50'000.f));
+
+					// Default bullet trail will just go as far as the bullet if it hits nothing
+					FVector BulletTrailEndPoint(BulletEnd);
+					GetWorld()->LineTraceSingleByChannel(BulletTraceHit, BulletStart, BulletEnd, ECollisionChannel::ECC_Visibility);
+
+					if (BulletTraceHit.bBlockingHit)
+					{
+						// Otherwise set it to exactly whatever we impacted with
+						BulletTrailEndPoint = BulletTraceHit.Location;
+
+						// Spawn impact particles
+						if (BulletImpactParticles)
+						{
+							UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, BulletTraceHit.Location);
+						}
+
+						// Spawn trail particles
+						if (BulletTrailParticles)
+						{
+							UParticleSystemComponent* Trail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, BulletStart);
+							if (Trail)
+							{
+								Trail->SetVectorParameter("Target", BulletTrailEndPoint); // makes it so the particles appear in a line from TraceStart  to TrailEndPoint
+							}
+						}
+					}
+				}
+			}
+		}
+
+		// Play Kickback animation
+		UAnimInstance* AnimInstance = CharMesh->GetAnimInstance();
+		if (AnimInstance && HipFireMontage)
+		{
+			AnimInstance->Montage_Play(HipFireMontage);
+			AnimInstance->Montage_JumpToSection("StartFire");
 		}
 	}
 }
