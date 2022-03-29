@@ -38,20 +38,21 @@ void UProjectMarcusAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		}
 		
 		// TODO: Swap this out for MovementOffset once you figure out how to indicate between left and right when DOT is 0...
-		FVector PlayerLookDir = PMCharacter->GetActorForwardVector().GetSafeNormal();
-		FVector MovementDir = PMCharacter->GetVelocity().GetSafeNormal();
-		//AimMovementDiff = FVector::DotProduct(PlayerLookDir, MovementDir); 		
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Red, FString::Printf(TEXT("Base Aim Rotation [%f]\nMovement Rotation [%f]\nAimMovementDiff [%f]\n\nPlayerLookDir (%f, %f)\nMovementDir (%f, %f)"), 
-																					AimRotation.Yaw, 
-																					MovementRotation.Yaw, 
-																					AimMovementDiff,
-																					PlayerLookDir.X,
-																					PlayerLookDir.Y, 
-																					MovementDir.X,
-																					MovementDir.Y));
-		}
+		//FVector PlayerLookDir = PMCharacter->GetActorForwardVector().GetSafeNormal();
+		//FVector MovementDir = PMCharacter->GetVelocity().GetSafeNormal();
+		////AimMovementDiff = FVector::DotProduct(PlayerLookDir, MovementDir); 		
+		//if (GEngine)
+		//{
+		//	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Red, 
+		//	FString::Printf(TEXT("Base Aim Rotation [%f]\nMovement Rotation [%f]\nAimMovementDiff [%f]\n\nPlayerLookDir (%f, %f)\nMovementDir (%f, %f)"), 
+		//	AimRotation.Yaw, 
+		//	MovementRotation.Yaw, 
+		//	AimMovementDiff,
+		//	PlayerLookDir.X,
+		//	PlayerLookDir.Y, 
+		//	MovementDir.X,
+		//	MovementDir.Y));
+		//}
 	}
 }
 
