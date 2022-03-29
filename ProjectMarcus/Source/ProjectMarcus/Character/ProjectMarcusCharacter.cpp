@@ -120,64 +120,31 @@ void AProjectMarcusCharacter::FireWeapon()
 		{
 			const FTransform SocketTransform = BarrelSocket->GetSocketTransform(CharMesh);
 
+			// Muzzle flash VFX
 			if (MuzzleFlash)
 			{
 				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
 			}
 
-			// Linetrace + Collision checking + Impact Particles
-			if (GetWorld())
+			FVector BulletHitLocation;
+			if (GetFinalHitLocation(SocketTransform.GetLocation(), BulletHitLocation))
 			{
-				// Get current viewport size
-				FVector2D ViewportSize;
-				if (GEngine && GEngine->GameViewport)
+
+				if (GetWorld())
 				{
-					GEngine->GameViewport->GetViewportSize(ViewportSize);
-				}
-
-				// Get the cross hair local position (screen space)
-				FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2); // Exact middle of the screen;
-				CrosshairLocation.Y -= 50.f; // adjust to match HUD
-
-				// Translate to world position
-				FVector CrosshairWorldPos;
-				FVector CrosshairWorldDir;
-				bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
-					UGameplayStatics::GetPlayerController(this, LOCAL_USER_NUM),
-					CrosshairLocation,
-					CrosshairWorldPos,
-					CrosshairWorldDir // Forward vector (so outwards from the viewport)
-				);
-
-				if (bScreenToWorld)
-				{
-					FHitResult BulletTraceHit;
-					const FVector BulletStart(CrosshairWorldPos);
-					const FVector BulletEnd(CrosshairWorldPos + (CrosshairWorldDir * 50'000.f));
-
-					// Default bullet trail will just go as far as the bullet if it hits nothing
-					FVector BulletTrailEndPoint(BulletEnd);
-					GetWorld()->LineTraceSingleByChannel(BulletTraceHit, BulletStart, BulletEnd, ECollisionChannel::ECC_Visibility);
-
-					if (BulletTraceHit.bBlockingHit)
+					// Spawn impact particles
+					if (BulletImpactParticles)
 					{
-						// Otherwise set it to exactly whatever we impacted with
-						BulletTrailEndPoint = BulletTraceHit.Location;
+						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, BulletHitLocation);
+					}
 
-						// Spawn impact particles
-						if (BulletImpactParticles)
+					// Spawn trail particles
+					if (BulletTrailParticles)
+					{
+						UParticleSystemComponent* Trail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform);
+						if (Trail)
 						{
-							UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, BulletTraceHit.Location);
-						}
-
-						// Spawn trail particles
-						if (BulletTrailParticles)
-						{
-							UParticleSystemComponent* Trail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform);
-							if (Trail)
-							{
-								Trail->SetVectorParameter("Target", BulletTrailEndPoint); // makes it so the particles appear in a line from TraceStart  to TrailEndPoint
-							}
+							Trail->SetVectorParameter("Target", BulletHitLocation); // makes it so the particles appear in a line from TraceStart  to TrailEndPoint
 						}
 					}
 				}
@@ -192,6 +159,61 @@ void AProjectMarcusCharacter::FireWeapon()
 			AnimInstance->Montage_JumpToSection("StartFire");
 		}
 	}
+}
+
+bool AProjectMarcusCharacter::GetFinalHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation)
+{
+	if (GetWorld())
+	{
+		// Get current viewport size
+		FVector2D ViewportSize;
+		if (GEngine && GEngine->GameViewport)
+		{
+			GEngine->GameViewport->GetViewportSize(ViewportSize);
+		}
+
+		// Get the cross hair local position (screen space)
+		FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2); // Exact middle of the screen;
+		CrosshairLocation.Y -= 50.f; // adjust to match HUD
+
+		// Translate crosshair to world position
+		FVector CrosshairWorldPos;
+		FVector CrosshairWorldDir;
+		bool bScreenToWorld = UGameplayStatics::DeprojectScreenToWorld(
+			UGameplayStatics::GetPlayerController(this, LOCAL_USER_NUM),
+			CrosshairLocation,
+			CrosshairWorldPos,
+			CrosshairWorldDir // Forward vector (so outwards from the viewport)
+		);
+
+		if (bScreenToWorld)
+		{
+			// Trace from crosshairs straight out
+			FHitResult CrosshairsHit;
+			const FVector CrosshairTraceStart(CrosshairWorldPos);
+			const FVector CrosshairTraceEnd(CrosshairWorldPos + (CrosshairWorldDir * 50'000.f));
+			OutHitLocation = CrosshairTraceEnd; // default hit location is as far as the trace went
+			GetWorld()->LineTraceSingleByChannel(CrosshairsHit, CrosshairTraceStart, CrosshairTraceEnd, ECollisionChannel::ECC_Visibility);
+			if (CrosshairsHit.bBlockingHit)
+			{
+				// Our crosshairs hit something, but still need to check if our bullet hit anything closer (possible unless we allow for changing aiming stance)
+				OutHitLocation = CrosshairsHit.Location;
+			}
+
+			// Trace from weapon barrel socket to whatever the crosshairs hit
+			FHitResult BulletHit;
+			const FVector BulletTraceStart(BarrelSocketLocation);
+			const FVector BulletTraceEnd(OutHitLocation);
+			GetWorld()->LineTraceSingleByChannel(BulletHit, BulletTraceStart, BulletTraceEnd, ECollisionChannel::ECC_Visibility);
+			if (BulletHit.bBlockingHit)
+			{
+				// Bullet hit something (might be the same as crosshairs, or something sooner)
+				OutHitLocation = BulletHit.Location;
+			}
+			return true;			
+		}
+	}
+	return false;
 }
 
 // Called every frame
