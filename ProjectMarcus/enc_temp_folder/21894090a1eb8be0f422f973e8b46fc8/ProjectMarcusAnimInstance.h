@@ -35,12 +35,4 @@ private:
 	// Indicates if the character is accelerating (acceleration > 0)
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bIsAccelerating;
-
-	// Offset Yaw used for strafing
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float MovementOffset;
-
-	// Difference between aim direction and movement direction
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float AimMovementDiff;
 };
