@@ -145,4 +145,5 @@ private:
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCam; }
+	FORCEINLINE bool IsAiming() const { return bIsAiming; }
 };

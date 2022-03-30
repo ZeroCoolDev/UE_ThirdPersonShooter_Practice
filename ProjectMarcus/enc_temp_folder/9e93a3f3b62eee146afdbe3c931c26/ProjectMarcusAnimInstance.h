@@ -38,12 +38,9 @@ private:
 
 	// Difference between [-180,180] the aim direction and movement direction. Used for strafing animations
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	float AimMovementDiff;
+		float AimMovementDiff;
 
 	// strafing data in the last frame used for strafe ending animations
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	float LastAimMovementDiff;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
-	bool bIsAiming;
 };

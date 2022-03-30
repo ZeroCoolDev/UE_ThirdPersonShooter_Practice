@@ -36,8 +36,6 @@ void UProjectMarcusAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		{
 			LastAimMovementDiff = AimMovementDiff;
 		}
-
-		bIsAiming = PMCharacter->IsAiming();
 		
 		// TODO: Swap this out for MovementOffset once you figure out how to indicate between left and right when DOT is 0...
 		//FVector PlayerLookDir = PMCharacter->GetActorForwardVector().GetSafeNormal();
