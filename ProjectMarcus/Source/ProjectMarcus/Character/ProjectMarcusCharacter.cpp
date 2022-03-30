@@ -52,6 +52,41 @@ AProjectMarcusCharacter::AProjectMarcusCharacter()
 	}
 }
 
+// Called every frame
+void AProjectMarcusCharacter::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	HandleCameraZoom(DeltaTime);
+}
+
+// Called to bind functionality to input
+void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	if (ensure(PlayerInputComponent))
+	{
+		// Movement
+		PlayerInputComponent->BindAxis("MoveForward", this, &AProjectMarcusCharacter::MoveForward);
+		PlayerInputComponent->BindAxis("MoveRight", this, &AProjectMarcusCharacter::MoveRight);
+
+		// Look rotations
+		PlayerInputComponent->BindAxis("TurnRate", this, &AProjectMarcusCharacter::TurnAtRate);
+		PlayerInputComponent->BindAxis("LookUpRate", this, &AProjectMarcusCharacter::LookUpAtRate);
+		PlayerInputComponent->BindAxis("TurnMouse", this, &APawn::AddControllerYawInput);
+		PlayerInputComponent->BindAxis("LookUpMouse", this, &APawn::AddControllerPitchInput);
+
+		// Jump
+		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
+		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ACharacter::StopJumping);
+
+		// Weapon Input
+		PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::FireWeapon);
+		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::AimButtonPressed);
+		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::AimButtonReleased);
+	}
+}
+
 // Called when the game starts or when spawned
 void AProjectMarcusCharacter::BeginPlay()
 {
@@ -60,7 +95,7 @@ void AProjectMarcusCharacter::BeginPlay()
 	if (FollowCam)
 	{
 		CameraData.DefaultFOV = FollowCam->FieldOfView;
-		CameraData.CurrentFOV = CameraData.DefaultFOV;
+		CurrentFOV = CameraData.DefaultFOV;
 	}
 }
 
@@ -129,7 +164,7 @@ void AProjectMarcusCharacter::FireWeapon()
 			}
 
 			FVector BulletHitLocation;
-			if (GetFinalHitLocation(SocketTransform.GetLocation(), BulletHitLocation))
+			if (GetBulletHitLocation(SocketTransform.GetLocation(), BulletHitLocation))
 			{
 
 				if (GetWorld())
@@ -163,25 +198,30 @@ void AProjectMarcusCharacter::FireWeapon()
 	}
 }
 
-void AProjectMarcusCharacter::AimButtonPressed()
+void AProjectMarcusCharacter::HandleCameraZoom(float DeltaTime)
 {
-	CameraData.bIsAiming = true;
-	if (FollowCam)
+	// Just lerping by A + (B-A) * t
+	if (bIsAiming)
 	{
-		FollowCam->SetFieldOfView(CameraData.ZoomedFOV);
+		if (CurrentFOV - CameraData.ZoomedFOV < SMALL_NUMBER)
+		{// early bail if we're already where we need to be VS calling SetFieldOfView every frame...which is unnecessary
+			return;
+		}
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, CameraData.ZoomedFOV, DeltaTime, CameraData.ZoomSpeed);
 	}
+	else
+	{
+		if (CameraData.DefaultFOV - CurrentFOV < SMALL_NUMBER)
+		{// early bail if we're already where we need to be VS calling SetFieldOfView every frame...which is unnecessary
+			return;
+		}
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, CameraData.DefaultFOV, DeltaTime, CameraData.ZoomSpeed);
+	}
+
+	FollowCam->SetFieldOfView(CurrentFOV);
 }
 
-void AProjectMarcusCharacter::AimButtonReleased()
-{
-	CameraData.bIsAiming = false;
-	if (FollowCam)
-	{
-		FollowCam->SetFieldOfView(CameraData.DefaultFOV);
-	}
-}
-
-bool AProjectMarcusCharacter::GetFinalHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation)
+bool AProjectMarcusCharacter::GetBulletHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation)
 {
 	if (GetWorld())
 	{
@@ -234,50 +274,5 @@ bool AProjectMarcusCharacter::GetFinalHitLocation(const FVector BarrelSocketLoca
 		}
 	}
 	return false;
-}
-
-// Called every frame
-void AProjectMarcusCharacter::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
-	// Just lerping by A + (B-A) * t
-	if (CameraData.bIsAiming)
-	{
-		CameraData.CurrentFOV = FMath::FInterpTo(CameraData.CurrentFOV, CameraData.ZoomedFOV, DeltaTime, CameraData.ZoomSpeed);
-	}
-	else
-	{
-		CameraData.CurrentFOV = FMath::FInterpTo(CameraData.CurrentFOV, CameraData.DefaultFOV, DeltaTime, CameraData.ZoomSpeed);
-	}
-
-	FollowCam->SetFieldOfView(CameraData.CurrentFOV);
-}
-
-// Called to bind functionality to input
-void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	if (ensure(PlayerInputComponent))
-	{
-		// Movement
-		PlayerInputComponent->BindAxis("MoveForward", this, &AProjectMarcusCharacter::MoveForward);
-		PlayerInputComponent->BindAxis("MoveRight", this, &AProjectMarcusCharacter::MoveRight);
-		
-		// Look rotations
-		PlayerInputComponent->BindAxis("TurnRate", this, &AProjectMarcusCharacter::TurnAtRate);
-		PlayerInputComponent->BindAxis("LookUpRate", this, &AProjectMarcusCharacter::LookUpAtRate);
-		PlayerInputComponent->BindAxis("TurnMouse", this, &APawn::AddControllerYawInput);
-		PlayerInputComponent->BindAxis("LookUpMouse", this, &APawn::AddControllerPitchInput);
-
-		// Jump
-		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
-		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ACharacter::StopJumping);
-
-		// Weapon Input
-		PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::FireWeapon);
-		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::AimButtonPressed);
-		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::AimButtonReleased);
-	}
 }
 

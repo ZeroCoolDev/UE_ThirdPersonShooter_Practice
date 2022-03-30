@@ -8,25 +8,46 @@
 
 #define LOCAL_USER_NUM 0
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FMoveData
 {
 	GENERATED_BODY()
-	float		TurnRate = 45.f;
-	float		LookUpRate = 45.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
+	float		TurnRate = 45.f;							// How fast character looks horizontally
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
+	float		LookUpRate = 45.f;							// How fast character looks vertically
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
 	float		JumpVelocity = 600.f;						// How high the character jumps
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
 	float		AirControl = 0.5f;							// Higher value allows more air control
-	FRotator	RotationRate = FRotator(0.f, 540.f, 0.f);	// Might be obsolete
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
+	FRotator	RotationRate = FRotator(0.f, 540.f, 0.f);	// Currently Unused. Determines how fast we rotate. lower = slow rotation. higher = fast. negative = snap instantly.
 };
 
-USTRUCT()
+USTRUCT(BlueprintType)
 struct FCameraData
 {
 	GENERATED_BODY()
-	float		DefaultFOV = 90.f;
-	float		ZoomedFOV = 45.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	float		DefaultFOV = 90.f;							// default FOV
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
+	float		ZoomedFOV = 45.f;							// FOV while aiming
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float		BoomLength = 250.f;							// Camera arm length
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	FVector		ScreenOffset = FVector(0.f, 50.f, 50.f);	// Offsets from exact middle of screen
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera)
+	float		ZoomSpeed = 20.f;							// How fast we move into/out of zooming
 };
 
 UCLASS()
@@ -76,7 +97,10 @@ protected:
 private:
 	bool GetFinalHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	FMoveData MoveData;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	FCameraData CameraData;
 
 	// Camera boom positioning the camera behind the character
@@ -86,14 +110,6 @@ private:
 	// Camera that follows the character
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCam;
-
-	// Base turn rate in deg/sec. Other scaling may effect final turn rate (pressure sensitivity of the thumbstick for ex)
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	float BaseTurnRate = 1.f;
-
-	// Base look up/down rate in deg/sec. Other scaling may effect final turn rate (pressure sensitivity of the thumbstick for ex)
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	float BaseLookUpRate = 1.f;
 
 	// Randomized gunshot sound cue
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
@@ -115,12 +131,11 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* BulletTrailParticles;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Combat, meta = (AllowPrivateAccess = "true"))
-	bool bIsAiming;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float CurrentFOV = 0.f;
 
-	float CameraDefaultFOV;
-
-	float CameraZoomedFOV;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	bool bIsAiming = false;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }

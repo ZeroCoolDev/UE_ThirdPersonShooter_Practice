@@ -13,8 +13,6 @@ struct FMoveData
 {
 	GENERATED_BODY()
 
-	/*Init Data*/
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
 	float		TurnRate = 45.f;							// How fast character looks horizontally
 
@@ -36,30 +34,19 @@ struct FCameraData
 {
 	GENERATED_BODY()
 
-	/* Dynamic Data */
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
-	float		CurrentFOV = 0.f;							// Used to interpolate between zoom FOVs
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
-	bool		bIsAiming = false;							// true = aiming
-
-
-	/*Init Data*/
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float		DefaultFOV = 90.f;							// default FOV
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float		ZoomedFOV = 45.f;							// FOV while aiming
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	float		BoomLength = 250.f;							// Camera arm length
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
 	FVector		ScreenOffset = FVector(0.f, 50.f, 50.f);	// Offsets from exact middle of screen
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera)
 	float		ZoomSpeed = 20.f;							// How fast we move into/out of zooming
 };
 
@@ -103,12 +90,17 @@ protected:
 
 	void FireWeapon();
 
-	void AimButtonPressed();
+	void AimButtonPressed() { bIsAiming = true; }
 
-	void AimButtonReleased();
+	void AimButtonReleased() { bIsAiming = false; }
 
 private:
-	bool GetFinalHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation);
+	// Smoothly change camera FOV based off if the player is zooming or not
+	void HandleCameraZoom(float DeltaTime);
+
+	// After firing a bullet get it's final impact point (either hits something or goes off infinitively far)
+	// returns false only if there was an error during calculation
+	bool GetBulletHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation);
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	FMoveData MoveData;
@@ -143,6 +135,12 @@ private:
 	// Smoke trail for bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* BulletTrailParticles;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	float CurrentFOV = 0.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	bool bIsAiming = false;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }

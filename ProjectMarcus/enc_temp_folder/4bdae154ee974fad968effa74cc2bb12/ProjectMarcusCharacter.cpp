@@ -9,12 +9,7 @@
 #include "Particles/ParticleSystemComponent.h"
 
 // Sets default values
-AProjectMarcusCharacter::AProjectMarcusCharacter() :
-	BaseTurnRate(MoveData.TurnRate),
-	BaseLookUpRate(MoveData.LookUpRate),
-	bIsAiming(false),
-	CameraDefaultFOV(CameraData.DefaultFOV), // Set withing BeginPlay. Setting to 0 which makes no sense so it's obvious if something is wrong
-	CameraZoomedFOV(CameraData.ZoomedFOV)
+AProjectMarcusCharacter::AProjectMarcusCharacter()
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -28,7 +23,7 @@ AProjectMarcusCharacter::AProjectMarcusCharacter() :
 			CameraArm->SetupAttachment(RootComponent);
 			CameraArm->TargetArmLength = CameraData.BoomLength; // camera follows at this distance behind the character
 			CameraArm->bUsePawnControlRotation = true; // rotate the arm based on the controller
-			CameraArm->SocketOffset = CameraData.ScreenOffset; //offsets the character
+			CameraArm->SocketOffset = CameraData.ScreenOffset;
 	
 			if (FollowCam == nullptr)
 			{
@@ -52,8 +47,6 @@ AProjectMarcusCharacter::AProjectMarcusCharacter() :
 	if (ensure(MoveComp))
 	{
 		MoveComp->bOrientRotationToMovement = false; // Character moves in the direction of input
-		// TODO: move these into BP editable params for designers
-		MoveComp->RotationRate = MoveData.RotationRate; // determines how fast we rotate. lower = slow rotation. higher = fast. negative = snap instantly
 		MoveComp->JumpZVelocity = MoveData.JumpVelocity; // how high the character jumps
 		MoveComp->AirControl = MoveData.AirControl; // 0 = no control. 1 = full control at max speed
 	}
@@ -66,7 +59,8 @@ void AProjectMarcusCharacter::BeginPlay()
 
 	if (FollowCam)
 	{
-		CameraDefaultFOV = FollowCam->FieldOfView;
+		CameraData.DefaultFOV = FollowCam->FieldOfView;
+		CurrentFOV = CameraData.DefaultFOV;
 	}
 }
 
@@ -102,12 +96,12 @@ void AProjectMarcusCharacter::MoveRight(float Value)
 
 void AProjectMarcusCharacter::TurnAtRate(float Rate)
 {
-	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
+	AddControllerYawInput(Rate * MoveData.TurnRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
 }
 
 void AProjectMarcusCharacter::LookUpAtRate(float Rate)
 {
-	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
+	AddControllerPitchInput(Rate * MoveData.LookUpRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
 }
 
 void AProjectMarcusCharacter::FireWeapon()
@@ -172,19 +166,11 @@ void AProjectMarcusCharacter::FireWeapon()
 void AProjectMarcusCharacter::AimButtonPressed()
 {
 	bIsAiming = true;
-	if (FollowCam)
-	{
-		FollowCam->SetFieldOfView(CameraZoomedFOV);
-	}
 }
 
 void AProjectMarcusCharacter::AimButtonReleased()
 {
 	bIsAiming = false;
-	if (FollowCam)
-	{
-		FollowCam->SetFieldOfView(CameraDefaultFOV);
-	}
 }
 
 bool AProjectMarcusCharacter::GetFinalHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation)
@@ -247,6 +233,26 @@ void AProjectMarcusCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Just lerping by A + (B-A) * t
+	if (bIsAiming)
+	{
+		if (CurrentFOV - CameraData.ZoomedFOV < SMALL_NUMBER)
+		{// early bail if we're already where we need to be VS calling SetFieldOfView every frame...which is unnecessary
+			return;
+		}
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, CameraData.ZoomedFOV, DeltaTime, CameraData.ZoomSpeed);
+	}
+	else
+	{
+		if (CameraData.DefaultFOV - CurrentFOV < SMALL_NUMBER)
+		{// early bail if we're already where we need to be VS calling SetFieldOfView every frame...which is unnecessary
+			return;
+		}
+		CurrentFOV = FMath::FInterpTo(CurrentFOV, CameraData.DefaultFOV, DeltaTime, CameraData.ZoomSpeed);
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Setting Camera FOV to %f"), CurrentFOV);
+	FollowCam->SetFieldOfView(CurrentFOV);
 }
 
 // Called to bind functionality to input
