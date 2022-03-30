@@ -57,7 +57,8 @@ void AProjectMarcusCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	HandleCameraZoom(DeltaTime);
+	UpdateCameraZoom(DeltaTime);
+	UpdateCurrentLookRate();
 }
 
 // Called to bind functionality to input
@@ -71,10 +72,10 @@ void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		PlayerInputComponent->BindAxis("MoveRight", this, &AProjectMarcusCharacter::MoveRight);
 
 		// Look rotations
-		PlayerInputComponent->BindAxis("TurnRate", this, &AProjectMarcusCharacter::TurnAtRate);
-		PlayerInputComponent->BindAxis("LookUpRate", this, &AProjectMarcusCharacter::LookUpAtRate);
-		PlayerInputComponent->BindAxis("TurnMouse", this, &APawn::AddControllerYawInput);
-		PlayerInputComponent->BindAxis("LookUpMouse", this, &APawn::AddControllerPitchInput);
+		PlayerInputComponent->BindAxis("TurnRate", this, &AProjectMarcusCharacter::TurnAtRate_Gamepad);
+		PlayerInputComponent->BindAxis("LookUpRate", this, &AProjectMarcusCharacter::LookUpAtRate_Gamepad);
+		PlayerInputComponent->BindAxis("TurnMouse", this, &AProjectMarcusCharacter::TurnAtRate_Mouse);
+		PlayerInputComponent->BindAxis("LookUpMouse", this, &AProjectMarcusCharacter::LookUpRate_Mouse);
 
 		// Jump
 		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
@@ -97,6 +98,12 @@ void AProjectMarcusCharacter::BeginPlay()
 		CameraData.DefaultFOV = FollowCam->FieldOfView;
 		CurrentFOV = CameraData.DefaultFOV;
 	}
+
+	CurrentGamepadTurnRate = MoveData.GamepadTurnRate;
+	CurrentGamepadLookUpRate = MoveData.GamepadLookUpRate;
+
+	CurrentMouseTurnRate = MoveData.MouseAimingTurnRate;
+	CurrentMouseLookUpRate = MoveData.MouseAimingLookUpRate;
 }
 
 void AProjectMarcusCharacter::MoveForward(float Value)
@@ -129,14 +136,25 @@ void AProjectMarcusCharacter::MoveRight(float Value)
 	}
 }
 
-void AProjectMarcusCharacter::TurnAtRate(float Rate)
+void AProjectMarcusCharacter::TurnAtRate_Gamepad(float Rate)
 {
-	AddControllerYawInput(Rate * MoveData.TurnRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
+	AddControllerYawInput(Rate * CurrentGamepadTurnRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
 }
 
-void AProjectMarcusCharacter::LookUpAtRate(float Rate)
+void AProjectMarcusCharacter::LookUpAtRate_Gamepad(float Rate)
 {
-	AddControllerPitchInput(Rate * MoveData.LookUpRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
+	AddControllerPitchInput(Rate * CurrentGamepadLookUpRate * GetWorld()->GetDeltaSeconds()); // deg/sec * sec/frame = deg/frame
+}
+
+void AProjectMarcusCharacter::TurnAtRate_Mouse(float Rate)
+{
+	AddControllerYawInput(Rate * CurrentMouseTurnRate); // snap to position
+
+}
+
+void AProjectMarcusCharacter::LookUpRate_Mouse(float Rate)
+{
+	AddControllerPitchInput(Rate * CurrentMouseLookUpRate); // snap to position
 }
 
 void AProjectMarcusCharacter::FireWeapon()
@@ -198,7 +216,7 @@ void AProjectMarcusCharacter::FireWeapon()
 	}
 }
 
-void AProjectMarcusCharacter::HandleCameraZoom(float DeltaTime)
+void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)
 {
 	// Just lerping by A + (B-A) * t
 	if (bIsAiming)
@@ -219,6 +237,26 @@ void AProjectMarcusCharacter::HandleCameraZoom(float DeltaTime)
 	}
 
 	FollowCam->SetFieldOfView(CurrentFOV);
+}
+
+void AProjectMarcusCharacter::UpdateCurrentLookRate()
+{
+	if (bIsAiming)
+	{
+		CurrentGamepadTurnRate = MoveData.GamepadAimingTurnRate;
+		CurrentGamepadLookUpRate = MoveData.GamepadAimingLookUpRate;
+
+		CurrentMouseTurnRate = MoveData.MouseAimingTurnRate;
+		CurrentMouseLookUpRate = MoveData.MouseAimingLookUpRate;
+	}
+	else
+	{
+		CurrentGamepadTurnRate = MoveData.GamepadTurnRate;
+		CurrentGamepadLookUpRate = MoveData.GamepadLookUpRate;
+
+		CurrentMouseTurnRate = MoveData.MouseTurnRate;
+		CurrentMouseLookUpRate = MoveData.MouseLookUpRate;
+	}
 }
 
 bool AProjectMarcusCharacter::GetBulletHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation)
