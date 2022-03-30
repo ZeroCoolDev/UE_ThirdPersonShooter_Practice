@@ -8,6 +8,27 @@
 
 #define LOCAL_USER_NUM 0
 
+USTRUCT()
+struct FMoveData
+{
+	GENERATED_BODY()
+	float		TurnRate = 45.f;
+	float		LookUpRate = 45.f;
+	float		JumpVelocity = 600.f;						// How high the character jumps
+	float		AirControl = 0.5f;							// Higher value allows more air control
+	FRotator	RotationRate = FRotator(0.f, 540.f, 0.f);	// Might be obsolete
+};
+
+USTRUCT()
+struct FCameraData
+{
+	GENERATED_BODY()
+	float		DefaultFOV = 90.f;
+	float		ZoomedFOV = 45.f;
+	float		BoomLength = 250.f;							// Camera arm length
+	FVector		ScreenOffset = FVector(0.f, 50.f, 50.f);	// Offsets from exact middle of screen
+};
+
 UCLASS()
 class PROJECTMARCUS_API AProjectMarcusCharacter : public ACharacter
 {
@@ -48,9 +69,16 @@ protected:
 
 	void FireWeapon();
 
-	bool GetFinalHitLocation(const FVector BarrelSocketLocation,  FVector& OutHitLocation);
+	void AimButtonPressed();
+
+	void AimButtonReleased();
 
 private:
+	bool GetFinalHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation);
+
+	FMoveData MoveData;
+	FCameraData CameraData;
+
 	// Camera boom positioning the camera behind the character
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class USpringArmComponent* CameraArm;
@@ -86,6 +114,13 @@ private:
 	// Smoke trail for bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* BulletTrailParticles;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	bool bIsAiming;
+
+	float CameraDefaultFOV;
+
+	float CameraZoomedFOV;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }

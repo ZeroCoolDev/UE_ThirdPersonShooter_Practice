@@ -10,8 +10,11 @@
 
 // Sets default values
 AProjectMarcusCharacter::AProjectMarcusCharacter() :
-	BaseTurnRate(45.f),
-	BaseLookUpRate(45.f)
+	BaseTurnRate(MoveData.TurnRate),
+	BaseLookUpRate(MoveData.LookUpRate),
+	bIsAiming(false),
+	CameraDefaultFOV(CameraData.DefaultFOV), // Set withing BeginPlay. Setting to 0 which makes no sense so it's obvious if something is wrong
+	CameraZoomedFOV(CameraData.ZoomedFOV)
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -23,9 +26,9 @@ AProjectMarcusCharacter::AProjectMarcusCharacter() :
 		{
 			// Create a camera boom (pulls in towards the character if there is a collision)
 			CameraArm->SetupAttachment(RootComponent);
-			CameraArm->TargetArmLength = 300.f; // camera follows at this distance behind the character
+			CameraArm->TargetArmLength = CameraData.BoomLength; // camera follows at this distance behind the character
 			CameraArm->bUsePawnControlRotation = true; // rotate the arm based on the controller
-			CameraArm->SocketOffset = FVector(0.f, 50.f, 50.f); //offsets the character
+			CameraArm->SocketOffset = CameraData.ScreenOffset; //offsets the character
 	
 			if (FollowCam == nullptr)
 			{
@@ -50,9 +53,9 @@ AProjectMarcusCharacter::AProjectMarcusCharacter() :
 	{
 		MoveComp->bOrientRotationToMovement = false; // Character moves in the direction of input
 		// TODO: move these into BP editable params for designers
-		MoveComp->RotationRate = FRotator(0.f, 540.f, 0.f); // determines how fast we rotate. lower = slow rotation. higher = fast. negative = snap instantly
-		MoveComp->JumpZVelocity = 600.f; // how high the character jumps
-		MoveComp->AirControl = 0.5; // 0 = no control. 1 = full control at max speed
+		MoveComp->RotationRate = MoveData.RotationRate; // determines how fast we rotate. lower = slow rotation. higher = fast. negative = snap instantly
+		MoveComp->JumpZVelocity = MoveData.JumpVelocity; // how high the character jumps
+		MoveComp->AirControl = MoveData.AirControl; // 0 = no control. 1 = full control at max speed
 	}
 }
 
@@ -60,6 +63,11 @@ AProjectMarcusCharacter::AProjectMarcusCharacter() :
 void AProjectMarcusCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (FollowCam)
+	{
+		CameraDefaultFOV = FollowCam->FieldOfView;
+	}
 }
 
 void AProjectMarcusCharacter::MoveForward(float Value)
@@ -161,6 +169,24 @@ void AProjectMarcusCharacter::FireWeapon()
 	}
 }
 
+void AProjectMarcusCharacter::AimButtonPressed()
+{
+	bIsAiming = true;
+	if (FollowCam)
+	{
+		FollowCam->SetFieldOfView(CameraZoomedFOV);
+	}
+}
+
+void AProjectMarcusCharacter::AimButtonReleased()
+{
+	bIsAiming = false;
+	if (FollowCam)
+	{
+		FollowCam->SetFieldOfView(CameraDefaultFOV);
+	}
+}
+
 bool AProjectMarcusCharacter::GetFinalHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation)
 {
 	if (GetWorld())
@@ -174,7 +200,7 @@ bool AProjectMarcusCharacter::GetFinalHitLocation(const FVector BarrelSocketLoca
 
 		// Get the cross hair local position (screen space)
 		FVector2D CrosshairLocation(ViewportSize.X / 2.f, ViewportSize.Y / 2); // Exact middle of the screen;
-		CrosshairLocation.Y -= 50.f; // adjust to match HUD
+		CrosshairLocation.Y -= CameraData.ScreenOffset.Y; // adjust to match HUD
 
 		// Translate crosshair to world position
 		FVector CrosshairWorldPos;
@@ -243,8 +269,10 @@ void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Pressed, this, &ACharacter::Jump);
 		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ACharacter::StopJumping);
 
-		// Weapon
+		// Weapon Input
 		PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::FireWeapon);
+		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::AimButtonPressed);
+		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::AimButtonReleased);
 	}
 }
 
