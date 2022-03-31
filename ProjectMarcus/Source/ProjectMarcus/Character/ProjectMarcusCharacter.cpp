@@ -230,20 +230,28 @@ void AProjectMarcusCharacter::CalculateCrosshairSpread(float DeltaTime)
 	// Low number when moving slowly, high number when moving quickly
 	CrosshairVelocityFactor = (SpeedInWalkRange - WallkSpeedRange.X) / (WallkSpeedRange.Y - WallkSpeedRange.X);
 	
+	// Calculate Crosshair Aim factor
 	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
 	if (MoveComp && MoveComp->IsFalling())// TODO: IsFalling is not technically what I think I want to use
-	{
-		// Move further away slowly
+	{// Move further away slowly
 		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
 	}
 	else
-	{
-		// Move inwards very quickly
+	{// Move inwards very quickly
 		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
 	}
 
+	if (bIsAiming)
+	{// Move inwards very quickly
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, -0.6f, DeltaTime, 30.f);
+	}
+	else
+	{// Move outwards very quickly
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
+	}
+
 	//GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green, FString::Printf(TEXT("\n\nCrosshairSpreadMultiplier = %f\nCrosshairVelocityFactor = %f\nCrosshairInAirFactor = %f"), CrosshairSpreadMultiplier, CrosshairVelocityFactor, CrosshairInAirFactor));
-	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityFactor + CrosshairInAirFactor;
+	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityFactor + CrosshairInAirFactor + CrosshairAimFactor;
 }
 
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)
