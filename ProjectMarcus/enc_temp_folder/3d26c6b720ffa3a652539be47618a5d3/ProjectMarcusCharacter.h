@@ -39,10 +39,8 @@ struct FMoveData
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
 	float		JumpVelocity = 600.f;						// How high the character jumps
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
 	float		AirControl = 0.5f;							// Higher value allows more air control
-
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement)
 	FRotator	RotationRate = FRotator(0.f, 540.f, 0.f);	// Currently Unused. Determines how fast we rotate. lower = slow rotation. higher = fast. negative = snap instantly.
 };
@@ -83,7 +81,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -120,6 +117,8 @@ protected:
 
 	void FireWeapon();
 
+	void CalculateCrosshairSpread(float DeltaTime);
+
 	void AimButtonPressed() { bIsAiming = true; }
 
 	void AimButtonReleased() { bIsAiming = false; }
@@ -134,10 +133,10 @@ private:
 	// returns false only if there was an error during calculation
 	bool GetBulletHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation);
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	FMoveData MoveData;
 	
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	FCameraData CameraData;
 
 	// Camera boom positioning the camera behind the character
@@ -167,6 +166,29 @@ private:
 	// Smoke trail for bullets
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UParticleSystem* BulletTrailParticles;
+
+	/* Crosshairs */
+
+	// Determines the spread
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
+	float CrosshairSpreadMultiplier;
+
+	// Velocity component for spread. Low number when moving slowly, high number when moving quickly [0, maxWalkSpeed]
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
+	float CrosshairVelocityFactor;
+
+	// In air component for spread
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
+	float CrosshairInAirFactor;
+
+	// Aim component for spread
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
+	float CrosshairAimFactor;
+
+	// Shooting component for spread
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
+	float CrosshairShootingFactor;
+
 
 	bool bIsAiming = false;
 

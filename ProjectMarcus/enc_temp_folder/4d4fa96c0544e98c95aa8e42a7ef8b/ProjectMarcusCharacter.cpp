@@ -60,7 +60,8 @@ void AProjectMarcusCharacter::Tick(float DeltaTime)
 	UpdateCameraZoom(DeltaTime);
 	UpdateCurrentLookRate();
 
-	CalculateCrosshairSpread(DeltaTime);
+	FVector Vel = GetVelocity();
+	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green, FString::Printf(TEXT("\n\nVelocity(%f, %f, %f) - Size(%f)"), Vel.X, Vel.Y, Vel.Z, Vel.Size()));
 }
 
 // Called to bind functionality to input
@@ -119,8 +120,7 @@ void AProjectMarcusCharacter::MoveForward(float Value)
 		// find out the direction the controller is pointing fwd
 		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X)); // EAxis::X = forward direction
 
-		// Uses internal movement clamps of [0, 600]
-		AddMovementInput(Direction, Value);
+		AddMovementInput(Direction, Value * 50.f);
 	}
 }
 
@@ -135,7 +135,6 @@ void AProjectMarcusCharacter::MoveRight(float Value)
 		// find out the direction the controller is pointing right
 		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y)); // EAxis::Y = right direction
 
-		// Uses internal movement clamps of [0, 600]
 		AddMovementInput(Direction, Value);
 	}
 }
@@ -222,10 +221,12 @@ void AProjectMarcusCharacter::FireWeapon()
 
 void AProjectMarcusCharacter::CalculateCrosshairSpread(float DeltaTime)
 {
-	// Map from walk speed range to [0, 1]
-	FVector2D WallkSpeedRange(0.f, 600.f);// default UE AddMovementInput range is [0, 600] which we are using
-	float SpeedInWalkRange = GetVelocity().Size();
-	CrosshairVelocityFactor = (SpeedInWalkRange - WallkSpeedRange.X) / (WallkSpeedRange.Y - WallkSpeedRange.X);
+	// Y = (X - A) / (B - A) * (D - C) + C 
+	FVector2D WallkSpeedRange(0.f, 600.f); // A, B
+	FVector2D VelocityMultiplierRange(0.f, 1.f);
+	// 0, 1   C, D
+
+
 
 	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityFactor;
 }
@@ -326,10 +327,5 @@ bool AProjectMarcusCharacter::GetBulletHitLocation(const FVector BarrelSocketLoc
 		}
 	}
 	return false;
-}
-
-float AProjectMarcusCharacter::GetCrosshairSpreadMultiplier() const
-{
-	return CrosshairSpreadMultiplier;
 }
 
