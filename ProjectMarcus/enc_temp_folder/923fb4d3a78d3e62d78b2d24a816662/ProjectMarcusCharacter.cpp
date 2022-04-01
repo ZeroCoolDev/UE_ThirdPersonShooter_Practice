@@ -60,8 +60,7 @@ void AProjectMarcusCharacter::Tick(float DeltaTime)
 	UpdateCameraZoom(DeltaTime);
 	UpdateCurrentLookRate();
 
-	FVector Vel = GetVelocity();
-	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green, FString::Printf(TEXT("\n\nVelocity(%f, %f, %f) - Size(%f)"), Vel.X, Vel.Y, Vel.Z, Vel.Size()));
+	CalculateCrosshairSpread(DeltaTime);
 }
 
 // Called to bind functionality to input
@@ -120,7 +119,8 @@ void AProjectMarcusCharacter::MoveForward(float Value)
 		// find out the direction the controller is pointing fwd
 		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X)); // EAxis::X = forward direction
 
-		AddMovementInput(Direction, Value * 50.f);
+		// Uses internal movement clamps of [0, 600]
+		AddMovementInput(Direction, Value);
 	}
 }
 
@@ -135,6 +135,7 @@ void AProjectMarcusCharacter::MoveRight(float Value)
 		// find out the direction the controller is pointing right
 		const FVector Direction(FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y)); // EAxis::Y = right direction
 
+		// Uses internal movement clamps of [0, 600]
 		AddMovementInput(Direction, Value);
 	}
 }
@@ -221,19 +222,41 @@ void AProjectMarcusCharacter::FireWeapon()
 
 void AProjectMarcusCharacter::CalculateCrosshairSpread(float DeltaTime)
 {
-	// Y = (X - A) / (B - A) * (D - C) + C 
-	FVector2D WallkSpeedRange(0.f, 600.f); // A, B
-	FVector2D VelocityMultiplierRange(0.f, 1.f);
-	// 0, 1   C, D
+	// Map from walk speed range to [0, 1]
+	FVector2D WallkSpeedRange(0.f, 600.f);// default UE AddMovementInput range is [0, 600] which we are using
+	FVector Velocity = GetVelocity();
+	Velocity.Z = 0.f; // Must zero out the vertical velocity since this should only be effected by walking 
+	float SpeedInWalkRange = Velocity.Size();
+	// Low number when moving slowly, high number when moving quickly
+	CrosshairVelocityFactor = (SpeedInWalkRange - WallkSpeedRange.X) / (WallkSpeedRange.Y - WallkSpeedRange.X);
+	
+	// Calculate Crosshair Aim factor
+	UCharacterMovementComponent* MoveComp = GetCharacterMovement();
+	if (MoveComp && MoveComp->IsFalling())// TODO: IsFalling is not technically what I think I want to use
+	{// Move further away slowly
+		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 2.25f, DeltaTime, 2.25f);
+	}
+	else
+	{// Move inwards very quickly
+		CrosshairInAirFactor = FMath::FInterpTo(CrosshairInAirFactor, 0.f, DeltaTime, 30.f);
+	}
 
+	if (bIsAiming)
+	{// Move inwards very quickly
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, -0.6f, DeltaTime, 30.f);
+	}
+	else
+	{// Move outwards very quickly
+		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
+	}
 
-
-	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityFactor;
+	//GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green, FString::Printf(TEXT("\n\nCrosshairSpreadMultiplier = %f\nCrosshairVelocityFactor = %f\nCrosshairInAirFactor = %f"), CrosshairSpreadMultiplier, CrosshairVelocityFactor, CrosshairInAirFactor));
+	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityFactor + CrosshairInAirFactor + CrosshairAimFactor;
 }
 
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)
 {
-	// Just lerping by A + (B-A) * t
+	// Just lerping by A + (B-A) * (t * Speed)
 	if (bIsAiming)
 	{
 		if (CurrentFOV - CameraData.ZoomedFOV < SMALL_NUMBER)
@@ -327,5 +350,10 @@ bool AProjectMarcusCharacter::GetBulletHitLocation(const FVector BarrelSocketLoc
 		}
 	}
 	return false;
+}
+
+float AProjectMarcusCharacter::GetCrosshairSpreadMultiplier() const
+{
+	return CrosshairSpreadMultiplier;
 }
 

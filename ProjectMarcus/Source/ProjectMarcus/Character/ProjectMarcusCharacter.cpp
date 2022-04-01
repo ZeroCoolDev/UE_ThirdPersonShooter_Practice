@@ -218,6 +218,8 @@ void AProjectMarcusCharacter::FireWeapon()
 			AnimInstance->Montage_JumpToSection("StartFire");
 		}
 	}
+
+	StartCrosshairBulletFire();
 }
 
 void AProjectMarcusCharacter::CalculateCrosshairSpread(float DeltaTime)
@@ -250,8 +252,25 @@ void AProjectMarcusCharacter::CalculateCrosshairSpread(float DeltaTime)
 		CrosshairAimFactor = FMath::FInterpTo(CrosshairAimFactor, 0.f, DeltaTime, 30.f);
 	}
 
+	CrosshairShootingFactor = FMath::FInterpTo(CrosshairShootingFactor, bIsFiringBullet ? 0.3f : 0.f, DeltaTime, 60.f);
+
 	//GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Green, FString::Printf(TEXT("\n\nCrosshairSpreadMultiplier = %f\nCrosshairVelocityFactor = %f\nCrosshairInAirFactor = %f"), CrosshairSpreadMultiplier, CrosshairVelocityFactor, CrosshairInAirFactor));
-	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityFactor + CrosshairInAirFactor + CrosshairAimFactor;
+	CrosshairSpreadMultiplier = 0.5f + CrosshairVelocityFactor + CrosshairInAirFactor + CrosshairAimFactor + CrosshairShootingFactor;
+}
+
+void AProjectMarcusCharacter::StartCrosshairBulletFire()
+{
+	bIsFiringBullet = true;
+
+	if (GetWorld())
+	{
+		GetWorldTimerManager().SetTimer(ShootTimeHandle, this, &AProjectMarcusCharacter::FinishCrosshairBulletFire, ShootTimeDuration);
+	}
+}
+
+void AProjectMarcusCharacter::FinishCrosshairBulletFire()
+{
+	bIsFiringBullet = false;
 }
 
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)

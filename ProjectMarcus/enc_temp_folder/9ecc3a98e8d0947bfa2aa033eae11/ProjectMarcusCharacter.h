@@ -171,23 +171,23 @@ private:
 
 	// Determines the spread
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
-	float CrosshairSpreadMultiplier;
+	float CrosshairSpreadMultiplier = 0.f;
 
 	// Velocity component for spread. Low number when moving slowly, high number when moving quickly [0, maxWalkSpeed]
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
-	float CrosshairVelocityFactor;
+	float CrosshairVelocityFactor = 0.f;
 
 	// In air component for spread
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
-	float CrosshairInAirFactor;
+	float CrosshairInAirFactor = 0.f;
 
 	// Aim component for spread
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
-	float CrosshairAimFactor;
+	float CrosshairAimFactor = 0.f;
 
 	// Shooting component for spread
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
-	float CrosshairShootingFactor;
+	float CrosshairShootingFactor = 0.f;
 
 
 	bool bIsAiming = false;
@@ -204,4 +204,7 @@ public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCam; }
 	FORCEINLINE bool IsAiming() const { return bIsAiming; }
+	
+	UFUNCTION(BlueprintCallable)
+	float GetCrosshairSpreadMultiplier() const;
 };
