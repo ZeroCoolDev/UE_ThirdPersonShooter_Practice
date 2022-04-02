@@ -65,14 +65,14 @@ void AProjectMarcusCharacter::Tick(float DeltaTime)
 
 	FHitResult ItemTraceResult;
 	FVector HitLocation;
-	if (TraceFromCrosshairs(ItemTraceResult, HitLocation))
-	{
-		AItemBase* ItemSeen = Cast<AItemBase>(ItemTraceResult.Actor);
-		if (ItemSeen)
-		{
-			ItemSeen->TogglePickupWidgetVisibility();
-		}
-	}
+	//if (TraceFromCrosshairs(ItemTraceResult, HitLocation))
+	//{
+	//	AItemBase* ItemSeen = Cast<AItemBase>(ItemTraceResult.Actor);
+	//	if (ItemSeen)
+	//	{
+	//		ItemSeen->TogglePickupWidgetVisibility();
+	//	}
+	//}
 }
 
 // Called to bind functionality to input
@@ -373,11 +373,9 @@ bool AProjectMarcusCharacter::GetBulletHitLocation(const FVector BarrelSocketLoc
 
 		// Trace from weapon barrel socket to whatever the crosshairs hit
 		FHitResult BulletHit;
-		const FVector BulletTraceStart = BarrelSocketLocation;
-
-		const FVector StartToEnd = OutHitLocation - BulletTraceStart; // Direction Vector from start to end
-		const FVector BulletTraceEnd = BarrelSocketLocation + StartToEnd * 1.25f; // OutHitLocation increased further by 25%
-		GetWorld()->LineTraceSingleByChannel(BulletHit, BulletTraceStart, BulletTraceEnd, ECollisionChannel::ECC_Visibility); 
+		const FVector BulletTraceStart(BarrelSocketLocation);
+		const FVector BulletTraceEnd(OutHitLocation);
+		GetWorld()->LineTraceSingleByChannel(BulletHit, BulletTraceStart, BulletTraceEnd, ECollisionChannel::ECC_Visibility);
 		if (BulletHit.bBlockingHit)
 		{
 			// Bullet hit something (might be the same as crosshairs, or something sooner)

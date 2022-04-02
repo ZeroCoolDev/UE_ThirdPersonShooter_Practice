@@ -6,7 +6,13 @@
 #include "GameFramework/Character.h"
 #include "ProjectMarcusCharacter.generated.h"
 
+#ifndef LOCAL_USER_NUM
 #define LOCAL_USER_NUM 0
+#endif
+
+#ifndef TRACE_FAR
+#define TRACE_FAR 50'000.f
+#endif //TRACE_FAR
 
 USTRUCT(BlueprintType)
 struct FMoveData
@@ -126,7 +132,6 @@ protected:
 
 	void FireButtonPressed();
 	void FireButtonReleased();
-	void StartFireTimer();
 	UFUNCTION()
 	void AutoFireReset();
 
@@ -143,6 +148,11 @@ private:
 	// After firing a bullet get it's final impact point (either hits something or goes off infinitively far)
 	// returns false only if there was an error during calculation
 	bool GetBulletHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation);
+
+	// Line trace from crosshairs (in world space). OutHitResult contains a hit if one occurred. OUtHitLocation contains the ending trace location whether it hit something or not.
+	bool TraceFromCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation);
+
+	bool GetCrosshairWorldPosition(FVector& OutWorldPos, FVector& OutWorldDir);
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	FMoveData MoveData;
