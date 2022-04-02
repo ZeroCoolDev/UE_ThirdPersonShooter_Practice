@@ -121,9 +121,14 @@ protected:
 
 	UFUNCTION()
 	void StartCrosshairBulletFire();
-
 	UFUNCTION()
 	void FinishCrosshairBulletFire();
+
+	void FireButtonPressed();
+	void FireButtonReleased();
+	void StartFireTimer();
+	UFUNCTION()
+	void AutoFireReset();
 
 	void AimButtonPressed() { bIsAiming = true; }
 
@@ -195,12 +200,21 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
 	float CrosshairShootingFactor = 0.f;
 
+	/* fire related */
+
+	// Used for crosshair animation while firing
 	float ShootTimeDuration = 0.05f;
 	bool bIsFiringBullet = false;
 	FTimerHandle ShootTimeHandle;
 
-	bool bIsAiming = false;
+	// Used for automatic firing
+	bool bFireButtonPressed = false;
+	//bool bShouldFire = true;
+	float AutomaticFireRate = 0.1f; // automatic weapon fire rate (fire/second) - needs to be larger than ShootTimeDuration
+	FTimerHandle AutoFireTimeHandle;
 
+	// Used for zooming the camera in/out when aiming
+	bool bIsAiming = false;
 	float CurrentFOV = 0.f;
 
 	//TODO: Detect dynamically which input device (m/kb or gamepad) we're using and reflect that

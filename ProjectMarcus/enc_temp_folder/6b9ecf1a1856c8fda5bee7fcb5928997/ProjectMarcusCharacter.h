@@ -119,6 +119,12 @@ protected:
 
 	void CalculateCrosshairSpread(float DeltaTime);
 
+	UFUNCTION()
+	void StartCrosshairBulletFire();
+
+	UFUNCTION()
+	void FinishCrosshairBulletFire();
+
 	void AimButtonPressed() { bIsAiming = true; }
 
 	void AimButtonReleased() { bIsAiming = false; }
@@ -189,6 +195,9 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
 	float CrosshairShootingFactor = 0.f;
 
+	float ShootTimeDuration = 0.05f;
+	bool bIsFiringBullet = false;
+	FTimerHandle ShootTimeHandle;
 
 	bool bIsAiming = false;
 

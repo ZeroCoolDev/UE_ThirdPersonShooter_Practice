@@ -84,7 +84,8 @@ void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		PlayerInputComponent->BindAction("Jump", EInputEvent::IE_Released, this, &ACharacter::StopJumping);
 
 		// Weapon Input
-		PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::FireWeapon);
+		PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::FireButtonPressed);
+		PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::FireButtonReleased);
 		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::AimButtonPressed);
 		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::AimButtonReleased);
 	}
@@ -271,6 +272,41 @@ void AProjectMarcusCharacter::StartCrosshairBulletFire()
 void AProjectMarcusCharacter::FinishCrosshairBulletFire()
 {
 	bIsFiringBullet = false;
+}
+
+void AProjectMarcusCharacter::FireButtonPressed()
+{
+	bFireButtonPressed = true;
+
+	FireWeapon();
+	
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().SetTimer(AutoFireTimeHandle, this, &AProjectMarcusCharacter::AutoFireReset, AutomaticFireRate, true);
+	}
+}
+
+void AProjectMarcusCharacter::FireButtonReleased()
+{
+	bFireButtonPressed = false;
+}
+
+void AProjectMarcusCharacter::AutoFireReset()
+{
+	if (!bFireButtonPressed)
+	{
+		if (GetWorld())
+		{
+			if (GetWorld()->GetTimerManager().IsTimerActive(AutoFireTimeHandle))
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AutoFireTimeHandle);
+			}
+		}
+	}
+	else
+	{
+		FireWeapon();
+	}
 }
 
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)
