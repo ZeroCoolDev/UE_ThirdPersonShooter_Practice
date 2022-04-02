@@ -63,16 +63,7 @@ void AProjectMarcusCharacter::Tick(float DeltaTime)
 
 	CalculateCrosshairSpread(DeltaTime);
 
-	FHitResult ItemTraceResult;
-	FVector HitLocation;
-	if (TraceFromCrosshairs(ItemTraceResult, HitLocation))
-	{
-		AItemBase* ItemSeen = Cast<AItemBase>(ItemTraceResult.Actor);
-		if (ItemSeen)
-		{
-			ItemSeen->TogglePickupWidgetVisibility();
-		}
-	}
+	CheckForItemsInRange();
 }
 
 // Called to bind functionality to input
@@ -100,6 +91,23 @@ void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::FireButtonReleased);
 		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::AimButtonPressed);
 		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::AimButtonReleased);
+	}
+}
+
+void AProjectMarcusCharacter::AddItemInRange(AItemBase* ItemInRange)
+{
+	if (ItemInRange)
+	{
+		ItemsInRange.FindOrAdd(ItemInRange->GetUniqueID(), MakeWeakObjectPtr<AItemBase>(ItemInRange));
+	}
+}
+
+void AProjectMarcusCharacter::RemoveItemInRange(AItemBase* ItemOutOfRange)
+{
+	if (ItemOutOfRange)
+	{
+		ItemOutOfRange->SetVisibiity(false);
+		ItemsInRange.Remove(ItemOutOfRange->GetUniqueID());
 	}
 }
 
@@ -361,6 +369,31 @@ void AProjectMarcusCharacter::UpdateCurrentLookRate()
 
 		CurrentMouseTurnRate = MoveData.MouseTurnRate;
 		CurrentMouseLookUpRate = MoveData.MouseLookUpRate;
+	}
+}
+
+void AProjectMarcusCharacter::CheckForItemsInRange()
+{
+	if (ItemsInRange.Num())
+	{
+		for (auto It = ItemsInRange.CreateConstIterator(); It; ++It)
+		{
+			AItemBase* Item = Cast<AItemBase>(It->Value);
+			if (Item)
+			{
+				// Check if looking at item (TODO: use dot product with player look direction and direction to this item)
+				FHitResult ItemTraceResult;
+				FVector HitLocation;
+				if (TraceFromCrosshairs(ItemTraceResult, HitLocation))
+				{
+					AItemBase* ItemSeen = Cast<AItemBase>(ItemTraceResult.Actor);
+					if (ItemSeen)
+					{
+						ItemSeen->TogglePickupWidgetVisibility();
+					}
+				}
+			}
+		}
 	}
 }
 

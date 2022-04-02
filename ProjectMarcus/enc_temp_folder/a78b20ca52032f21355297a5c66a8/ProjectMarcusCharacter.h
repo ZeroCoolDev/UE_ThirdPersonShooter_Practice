@@ -87,10 +87,6 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	void AddItemInRange(class AItemBase* ItemInRange);
-
-	void RemoveItemInRange(class AItemBase* ItemOutOfRange);
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -148,8 +144,6 @@ private:
 	void UpdateCameraZoom(float DeltaTime);
 
 	void UpdateCurrentLookRate();
-
-	void CheckForItemsInRange();
 
 	// After firing a bullet get it's final impact point (either hits something or goes off infinitively far)
 	// returns false only if there was an error during calculation
@@ -238,9 +232,6 @@ private:
 	float CurrentGamepadLookUpRate = 0.f;
 	float CurrentMouseTurnRate = 0.f;
 	float CurrentMouseLookUpRate = 0.f;
-
-	UPROPERTY()
-	TMap<uint32, TWeakObjectPtr<class AItemBase>> ItemsInRange;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }
