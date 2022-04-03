@@ -91,6 +91,7 @@ void AItemBase::OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* O
 		if (PMCharacter)
 		{
 			PMCharacter->RemoveItemInRange(this);
+			UE_LOG(LogTemp, Warning, TEXT("REMOVING character in range as our cached characer!"));
 			CachedCharInPickupRange = nullptr;
 		}
 	}
@@ -111,14 +112,12 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 				// Determine base Z height for when Curve is at 1.0
 				const FVector CameraInterpLocation = CachedCharInPickupRange->GetCameraInterpLocation(); // Get location in front of the camera
 				const FVector DistFromItemToCameraUp = FVector(0.f, 0.f, (CameraInterpLocation - ItemPickupPreviewStartLocation).Z); // Distance vertically between item's starting position and the camera
-				const float BaseZHeight = DistFromItemToCameraUp.Size(); // Get a scalar for the desired Z height
+				const float BaseZHeigh = DistFromItemToCameraUp.Size(); // Get a scalar for the desired Z height
 
 				// CurveValue = 1.0 ItemLocationThisFrame will be exactly at DistFromItemToCameraUp. 
 				// CurveValue > 1.0 ItemLocationThisFrame will be higher than DistFromItemToCameraUp
 				// CurveValue < 1.0 ItemLocationThisFrame will be lower than DistFromItemToCameraUp
-				const float ZHeightThisFrame = ItemPickupPreviewStartLocation.Z + (CurveValue * BaseZHeight);
-				// Set the Z location of the item only
-				FVector ItemLocationThisFrame = FVector(ItemPickupPreviewStartLocation.X, ItemPickupPreviewStartLocation.Y, ZHeightThisFrame);
+				FVector ItemLocationThisFrame = ItemPickupPreviewStartLocation + (CurveValue * BaseZHeigh);
 
 				SetActorLocation(ItemLocationThisFrame, true, nullptr, ETeleportType::TeleportPhysics);
 			}
@@ -139,8 +138,6 @@ void AItemBase::FinishPickupPreview()
 	bPreviewInterping = false;
 	if (CachedCharInPickupRange)
 	{
-		// Once we pick it up we turn off overlaps, so the organic "OnEndOverlap" which removes this item from range will not fire. Need to fire it manually on pickup
-		CachedCharInPickupRange->RemoveItemInRange(this);
 		CachedCharInPickupRange->PickupItemAfterPreview(this);
 	}
 }
@@ -211,7 +208,7 @@ void AItemBase::UpdateToState(EItemState State)
 		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		DisableOverlapBindings();
+		ProximityTrigger->SetGenerateOverlapEvents(false);
 		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
@@ -234,7 +231,7 @@ void AItemBase::UpdateToState(EItemState State)
 		ItemMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
 		ItemMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 
-		DisableOverlapBindings();
+		ProximityTrigger->SetGenerateOverlapEvents(false);
 		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 

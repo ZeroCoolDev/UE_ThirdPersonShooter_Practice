@@ -136,7 +136,7 @@ FVector AProjectMarcusCharacter::GetCameraInterpLocation()
 	return ItemPreviewLoc;
 }
 
-void AProjectMarcusCharacter::GetPickupItem(AItemBase* PickedupItem)
+void AProjectMarcusCharacter::PickupItemAfterPreview(AItemBase* PickedupItem)
 {
 	if (AWeaponItem* WeaponItem = Cast<AWeaponItem>(PickedupItem))
 	{
@@ -225,7 +225,7 @@ void AProjectMarcusCharacter::SelectButtonPressed()
 {
 	if (CurrentlyFocusedItem)
 	{
-		SwapWeapon(Cast<AWeaponItem>(CurrentlyFocusedItem));
+		CurrentlyFocusedItem->UpdateToState(EItemState::EIS_PickUp);
 	}
 }
 

@@ -99,7 +99,7 @@ public:
 
 	FVector GetCameraInterpLocation();
 
-	void GetPickupItem(AItemBase* PickedupItem);
+	void PickupItemAfterPreview(AItemBase* PickedupItem);
 
 protected:
 	// Called when the game starts or when spawned

@@ -21,8 +21,8 @@ UENUM(BlueprintType)
 enum class EItemState : uint8
 {
 	EIS_PickupWaiting UMETA(DisplayName = "WaitingForPickup"),
-	EIS_EquipInterping UMETA(DisplayName = "EquipInterping"),
-	EIS_PickedUp UMETA(DisplayName = "PickedUp"),
+	EIS_PickUp UMETA(DisplayName = "PickUp"),
+	EIS_PreviewInterping UMETA(DisplayName = "PreviewInterping"),
 	EIS_Equipped UMETA(DisplayName = "Equipped"),
 	EIS_Drop	UMETA(DisplayName = "Drop"),
 	EIS_Falling UMETA(DisplayName = "Falling"),
@@ -48,14 +48,24 @@ public:
 
 	USkeletalMeshComponent* GetItemMesh() { return ItemMesh; }
 
+	//void StartItemPickupPreview(class AProjectMarcusCharacter* Char);
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	void EnableOverlapBindings();
+	void DisableOverlapBindings();
 
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()
 	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	// handles item interpolation when in the EIS_PreviewInterping state
+	void CheckForItemPreviewInterp(float DeltaTime);
+
+	void FinishPickupPreview();
 
 	// Item Mesh
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
@@ -85,4 +95,23 @@ protected:
 	// The curve asset to use for the items Z location when interping on pickup
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* ItemZPickupPreviewCurve;
+
+	/* Item Pickup */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FVector ItemPickupPreviewStartLocation = FVector::ZeroVector;
+	
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FVector ItemPickupPreviewEndLocation = FVector::ZeroVector;
+	
+	bool bPreviewInterping = false;
+	
+	FTimerHandle ItemInterpHandle;
+
+	// Duration matches the curve length
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float ItemPickupPreviewDuration = 0.7f;
+
+	// I don't like this - why do we need a reference to our character. WE should just be given a target location and interp to there
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class AProjectMarcusCharacter* CachedCharInPickupRange = nullptr;
 };
