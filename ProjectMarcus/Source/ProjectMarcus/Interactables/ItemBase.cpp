@@ -23,6 +23,106 @@ AItemBase::AItemBase()
 	ProximityTrigger->SetupAttachment(GetRootComponent());
 }
 
+void AItemBase::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	CheckForItemPreviewInterp(DeltaTime);
+}
+
+void AItemBase::UpdateToState(EItemState State)
+{
+	ItemState = State;
+
+	switch (ItemState)
+	{
+	case EItemState::EIS_PickupWaiting: // Sitting on the ground waiting for someone to pick it up
+	{
+		ItemMesh->SetSimulatePhysics(false);
+		ItemMesh->SetEnableGravity(false);
+		ItemMesh->SetVisibility(true);
+		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		EnableProximityTrigger();
+		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		break;
+	}
+	case EItemState::EIS_PickUp:
+	{
+		ItemMesh->SetSimulatePhysics(false);
+		ItemMesh->SetEnableGravity(false);
+		ItemMesh->SetVisibility(true);
+		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		DisableProximityTrigger();
+		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		PickupWidget->SetVisibility(false);
+
+		ItemPickupPreviewStartLocation = GetActorLocation();
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().SetTimer(ItemInterpHandle, this, &AItemBase::FinishPickupPreview, ItemPickupPreviewDuration);
+		}
+		UpdateToState(EItemState::EIS_PreviewInterping);
+		break;
+	}
+	case EItemState::EIS_PreviewInterping:
+	{
+		bPreviewInterping = true;
+		break;
+	}
+	case EItemState::EIS_Equipped:
+	{
+		ItemMesh->SetSimulatePhysics(false);
+		ItemMesh->SetEnableGravity(false);
+		ItemMesh->SetVisibility(true);
+		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		DisableProximityTrigger();
+		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		PickupWidget->SetVisibility(false);
+		break;
+	}
+	case EItemState::EIS_Drop:
+	{
+		FDetachmentTransformRules DetachmentRules(EDetachmentRule::KeepWorld, true);
+		ItemMesh->DetachFromComponent(DetachmentRules);
+		UpdateToState(EItemState::EIS_Falling);
+		break;
+	}
+	case EItemState::EIS_Falling:
+	{
+		ItemMesh->SetSimulatePhysics(true);
+		ItemMesh->SetEnableGravity(true);
+		ItemMesh->SetVisibility(true);
+		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+
+		DisableProximityTrigger();
+		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		PickupWidget->SetVisibility(false);
+		break;
+	}
+	default:
+		break;
+	}
+}
+
+void AItemBase::SetPickupWidgetVisibility(bool bVisible)
+{
+	PickupWidget->SetVisibility(bVisible);
+}
+
 // Called when the game starts or when spawned
 void AItemBase::BeginPlay()
 {
@@ -31,39 +131,7 @@ void AItemBase::BeginPlay()
 	// Hide by default
 	PickupWidget->SetVisibility(false);
 
-	EnableOverlapBindings();
-
 	UpdateToState(EItemState::EIS_PickupWaiting);
-}
-
-void AItemBase::EnableOverlapBindings()
-{
-	if (ProximityTrigger)
-	{
-		if (!ProximityTrigger->OnComponentBeginOverlap.IsBound())
-		{
-			ProximityTrigger->OnComponentBeginOverlap.AddDynamic(this, &AItemBase::OnBeginOverlap);
-		}
-		if (!ProximityTrigger->OnComponentEndOverlap.IsBound())
-		{
-			ProximityTrigger->OnComponentEndOverlap.AddDynamic(this, &AItemBase::OnEndOverlap);
-		}
-	}
-}
-
-void AItemBase::DisableOverlapBindings()
-{
-	if (ProximityTrigger)
-	{
-		if (ProximityTrigger->OnComponentBeginOverlap.IsBound())
-		{
-			ProximityTrigger->OnComponentBeginOverlap.RemoveDynamic(this, &AItemBase::OnBeginOverlap);
-		}
-		if (ProximityTrigger->OnComponentEndOverlap.IsBound())
-		{
-			ProximityTrigger->OnComponentEndOverlap.RemoveDynamic(this, &AItemBase::OnEndOverlap);
-		}
-	}
 }
 
 void AItemBase::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -145,114 +213,48 @@ void AItemBase::FinishPickupPreview()
 	}
 }
 
-// Called every frame
-void AItemBase::Tick(float DeltaTime)
+void AItemBase::EnableProximityTrigger()
 {
-	Super::Tick(DeltaTime);
-	CheckForItemPreviewInterp(DeltaTime);
-}
-
-void AItemBase::SetVisibiity(bool bVisible)
-{
-	PickupWidget->SetVisibility(bVisible);
-}
-
-void AItemBase::UpdateToState(EItemState State)
-{
-	ItemState = State;
-
-	switch (ItemState)
+	if (ProximityTrigger)
 	{
-	case EItemState::EIS_PickupWaiting: // Sitting on the ground waiting for someone to pick it up
-	{
-		ItemMesh->SetSimulatePhysics(false);
-		ItemMesh->SetEnableGravity(false);
-		ItemMesh->SetVisibility(true);
-		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		EnableOverlapBindings();
-		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
-		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
-		break;
-	}
-	case EItemState::EIS_PickUp:
-	{
-		ItemMesh->SetSimulatePhysics(false);
-		ItemMesh->SetEnableGravity(false);
-		ItemMesh->SetVisibility(true);
-		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		DisableOverlapBindings();
-		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		PickupWidget->SetVisibility(false);
-		
-		ItemPickupPreviewStartLocation = GetActorLocation();
-		if (GetWorld())
+		if (!ProximityTrigger->OnComponentBeginOverlap.IsBound())
 		{
-			GetWorld()->GetTimerManager().SetTimer(ItemInterpHandle, this, &AItemBase::FinishPickupPreview, ItemPickupPreviewDuration);
+			ProximityTrigger->OnComponentBeginOverlap.AddDynamic(this, &AItemBase::OnBeginOverlap);
 		}
-		UpdateToState(EItemState::EIS_PreviewInterping);
-		break;
-	}
-	case EItemState::EIS_PreviewInterping:
-	{
-		bPreviewInterping = true;
-		break;
-	}
-	case EItemState::EIS_Equipped:
-	{
-		ItemMesh->SetSimulatePhysics(false);
-		ItemMesh->SetEnableGravity(false);
-		ItemMesh->SetVisibility(true);
-		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		DisableOverlapBindings();
-		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		PickupWidget->SetVisibility(false);
-		break;
-	}
-	case EItemState::EIS_Drop:
-	{
-		FDetachmentTransformRules DetachmentRules(EDetachmentRule::KeepWorld, true);
-		ItemMesh->DetachFromComponent(DetachmentRules);
-		UpdateToState(EItemState::EIS_Falling);
-		break;
-	}
-	case EItemState::EIS_Falling:
-	{
-		ItemMesh->SetSimulatePhysics(true);
-		ItemMesh->SetEnableGravity(true);
-		ItemMesh->SetVisibility(true);
-		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ItemMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
-		ItemMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-
-		DisableOverlapBindings();
-		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		PickupWidget->SetVisibility(false);
-		break;
-	}
-	default:
-		break;
+		if (!ProximityTrigger->OnComponentEndOverlap.IsBound())
+		{
+			ProximityTrigger->OnComponentEndOverlap.AddDynamic(this, &AItemBase::OnEndOverlap);
+		}
 	}
 }
 
-// Just set the state to "pickup"
-//void AItemBase::StartItemPickupPreview(AProjectMarcusCharacter* Char)
-//{
-//	if (Char)
-//	{
-//		CachedCharInPickupRange = Char;
-//		UpdateToState(EItemState::EIS_PreviewInterping);
-//	}
-//}
+void AItemBase::DisableProximityTrigger()
+{
+	if (ProximityTrigger)
+	{
+		if (ProximityTrigger->OnComponentBeginOverlap.IsBound())
+		{
+			ProximityTrigger->OnComponentBeginOverlap.RemoveDynamic(this, &AItemBase::OnBeginOverlap);
+		}
+		if (ProximityTrigger->OnComponentEndOverlap.IsBound())
+		{
+			ProximityTrigger->OnComponentEndOverlap.RemoveDynamic(this, &AItemBase::OnEndOverlap);
+		}
+	}
+}
+
+void AItemBase::EnableMeshPhysics()
+{
+
+}
+
+void AItemBase::DisableMeshPhysycs()
+{
+
+}
+
+void AItemBase::SetMeshVibility(bool bVisible)
+{
+
+}
 

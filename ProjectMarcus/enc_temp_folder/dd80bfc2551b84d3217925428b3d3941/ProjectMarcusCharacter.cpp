@@ -109,7 +109,7 @@ void AProjectMarcusCharacter::RemoveItemInRange(AItemBase* ItemOutOfRange)
 {
 	if (ItemOutOfRange)
 	{
-		ItemOutOfRange->SetPickupWidgetVisibility(false);
+		ItemOutOfRange->SetVisibiity(false);
 		ItemsInRange.Remove(ItemOutOfRange->GetUniqueID());
 		// If the item we are no longer in range of was our currently focused item, remove it
 		if (CurrentlyFocusedItem && ItemOutOfRange->GetUniqueID() == CurrentlyFocusedItem->GetUniqueID())
@@ -495,7 +495,7 @@ void AProjectMarcusCharacter::CheckForItemsInRange()
 				// If the look vector and direction to item is close, toggle the popup visible, otherwise toggle it off
 				if (LookingAtItemAmount >= ItemPopupVisibilityThreshold)
 				{
-					Item->SetPickupWidgetVisibility(true);
+					Item->SetVisibiity(true);
 					// Regardless if one was set already, update the currently focused item to the latest one looking at
 					CurrentlyFocusedItem = Item;
 				}
@@ -506,7 +506,7 @@ void AProjectMarcusCharacter::CheckForItemsInRange()
 					{
 						CurrentlyFocusedItem = nullptr;
 					}
-					Item->SetPickupWidgetVisibility(false);
+					Item->SetVisibiity(false);
 				}
 			}
 		}

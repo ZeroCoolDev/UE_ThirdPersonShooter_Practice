@@ -42,13 +42,20 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void SetVisibiity(bool bVisible);
+
 	void UpdateToState(EItemState State);
 
-	void SetPickupWidgetVisibility(bool bVisible);
+	USkeletalMeshComponent* GetItemMesh() { return ItemMesh; }
+
+	//void StartItemPickupPreview(class AProjectMarcusCharacter* Char);
 
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
+
+	void EnableOverlapBindings();
+	void DisableOverlapBindings();
 
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -59,14 +66,6 @@ protected:
 	void CheckForItemPreviewInterp(float DeltaTime);
 
 	void FinishPickupPreview();
-
-	void EnableProximityTrigger();
-	void DisableProximityTrigger();
-
-	void EnableMeshPhysics();
-	void DisableMeshPhysycs();
-
-	void SetMeshVibility(bool bVisible);
 
 	// Item Mesh
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
