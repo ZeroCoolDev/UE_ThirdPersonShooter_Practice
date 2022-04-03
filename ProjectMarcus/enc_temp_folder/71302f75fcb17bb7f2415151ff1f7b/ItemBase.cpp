@@ -237,9 +237,6 @@ void AItemBase::StartPickupPreview()
 	// Store the angle between camera and item (so we know what constant angle offset to keep the item at relative to the camera if the player rotates during pickup)
 	if (CachedCharInPickupRange)
 	{
-		// Remove the item we're picking up immediately from the range list so we don't show the widget in mid preview
-		CachedCharInPickupRange->RemoveItemInRange(this);
-
 		UCameraComponent* CharCamComponent = CachedCharInPickupRange->GetFollowCamera();
 		if (CharCamComponent)
 		{
@@ -261,6 +258,7 @@ void AItemBase::FinishPickupPreview()
 	if (CachedCharInPickupRange)
 	{
 		// Once we pick it up we turn off overlaps, so the organic "OnEndOverlap" which removes this item from range will not fire. Need to fire it manually on pickup
+		CachedCharInPickupRange->RemoveItemInRange(this);
 		CachedCharInPickupRange->PickupItemAfterPreview(this);
 	}
 }

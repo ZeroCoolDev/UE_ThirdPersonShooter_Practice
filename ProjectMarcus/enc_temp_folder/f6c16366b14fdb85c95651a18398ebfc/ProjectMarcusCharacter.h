@@ -78,14 +78,6 @@ struct FCameraData
 	float		ItemPickupDistanceUp = 65.f;				// Distance upwards from the camera where the item previews on pickup
 };
 
-UENUM(BlueprintType)
-enum class EAmmoType : uint8
-{
-	EAT_9mm UMETA(DisplayName = "9mm"),
-	EAT_AR UMETA(DisplayName = "Assault Rifle"),
-	EAT_Max UMETA(DisplayName = "InvalidMax")
-};
-
 UCLASS()
 class PROJECTMARCUS_API AProjectMarcusCharacter : public ACharacter
 {
@@ -185,8 +177,6 @@ protected:
 	// Drops currently equipped weapon, and equips whatever weapon is currently being looked at
 	void SwapWeapon(AWeaponItem* WeaponToSwap);
 
-	void FillAmmoMap();
-
 private:
 	// Smoothly change camera FOV based off if the player is zooming or not
 	void UpdateCameraZoom(float DeltaTime);
@@ -271,16 +261,6 @@ private:
 	// Will be nullptr if not looking at anything
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	class AItemBase* CurrentlyFocusedItem = nullptr;
-
-	// TODO: Use a fixed length array instead
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	TMap<EAmmoType, int32> AmmoMap;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	int32 Starting9mmAmmo = 85;
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	int32 StartingARAmmo = 120;
 
 private:
 	/* fire related */

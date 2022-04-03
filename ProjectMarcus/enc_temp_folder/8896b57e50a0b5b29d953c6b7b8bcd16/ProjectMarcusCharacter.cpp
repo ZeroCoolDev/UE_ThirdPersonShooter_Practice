@@ -430,12 +430,6 @@ void AProjectMarcusCharacter::SwapWeapon(AWeaponItem* WeaponToSwap)
 	EquipWeapon(WeaponToSwap);
 }
 
-void AProjectMarcusCharacter::FillAmmoMap()
-{
-	AmmoMap.Empty();
-	AmmoMap = { {EAmmoType::EAT_9mm, StartingARAmmo}, {EAmmoType::EAT_AR, StartingARAmmo} };
-}
-
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)
 {
 	// Just lerping by A + (B-A) * (t * Speed)

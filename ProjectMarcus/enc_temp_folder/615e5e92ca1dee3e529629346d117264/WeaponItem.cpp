@@ -56,7 +56,7 @@ void AWeaponItem::ThrowWeapon()
 	}
 }
 
-void AWeaponItem::StopFalling() // TODO: The pickup in the air is actually still reacting to our widget visibility checking (need to turn that off/remove it from the map immediately I think)
+void AWeaponItem::StopFalling()
 {
 	bFalling = false;
 	UpdateToState(EItemState::EIS_PickupWaiting);
