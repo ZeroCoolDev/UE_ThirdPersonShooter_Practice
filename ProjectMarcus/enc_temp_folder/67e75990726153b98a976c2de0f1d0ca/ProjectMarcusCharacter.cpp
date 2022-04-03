@@ -119,35 +119,6 @@ void AProjectMarcusCharacter::RemoveItemInRange(AItemBase* ItemOutOfRange)
 	}
 }
 
-FVector AProjectMarcusCharacter::GetCameraInterpLocation()
-{
-	// Defaulting to 0 so if something is wrong we're very aware
-	FVector ItemPreviewLoc = FVector::ZeroVector;
-
-	if (GetFollowCamera())
-	{
-		const FVector CameraWorldPos = GetFollowCamera()->GetComponentLocation();
-		const FVector CamForwardDir = GetFollowCamera()->GetForwardVector();
-		// desired = camLoc + forward * A + up * B
-		ItemPreviewLoc = CameraWorldPos + 
-						 CamForwardDir * CameraData.ItemPickupDistranceOut + 
-						 FVector(0.f, 0.f, CameraData.ItemPickupDistanceUp); // TODO: make this use the cameras UP vector, not world up.
-	}
-	return ItemPreviewLoc;
-}
-
-void AProjectMarcusCharacter::GetPickupItem(AItemBase* PickedupItem)
-{
-	if (AWeaponItem* WeaponItem = Cast<AWeaponItem>(PickedupItem))
-	{
-		SwapWeapon(WeaponItem);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("AProjectMarcusCharacter::GetPickupITem, Picking up an item that is an unsupported type!"));
-	}
-}
-
 // Called when the game starts or when spawned
 void AProjectMarcusCharacter::BeginPlay()
 {

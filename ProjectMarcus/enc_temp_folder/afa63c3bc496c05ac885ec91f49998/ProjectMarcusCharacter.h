@@ -70,12 +70,6 @@ struct FCameraData
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera)
 	float		ZoomSpeed = 20.f;							// How fast we move into/out of zooming
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera)
-	float		ItemPickupDistranceOut = 250.f;				// Distance outwards from the cameras forward vector where the item previews on pickup
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Camera)
-	float		ItemPickupDistanceUp = 65.f;				// Distance upwards from the camera where the item previews on pickup
 };
 
 UCLASS()
@@ -96,10 +90,6 @@ public:
 	void AddItemInRange(class AItemBase* ItemInRange);
 
 	void RemoveItemInRange(class AItemBase* ItemOutOfRange);
-
-	FVector GetCameraInterpLocation();
-
-	void GetPickupItem(AItemBase* PickedupItem);
 
 protected:
 	// Called when the game starts or when spawned
@@ -250,19 +240,6 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = Crosshair, meta = (AllowPrivateAccess = "true"))
 	float CrosshairShootingFactor = 0.f;
 
-	// Keeps track of our current weapon
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	class AWeaponItem* EquippedWeapon = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AWeaponItem> DefaultWeaponClass;
-
-	// Keeps track of the item the player is currently looking at (used for knowing which item we want to actually pickup and swap with)
-	// Will be nullptr if not looking at anything
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	class AItemBase* CurrentlyFocusedItem = nullptr;
-
-private:
 	/* fire related */
 
 	// Used for crosshair animation while firing
@@ -286,11 +263,22 @@ private:
 	float CurrentMouseTurnRate = 0.f;
 	float CurrentMouseLookUpRate = 0.f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	class AWeaponItem* EquippedWeapon = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	TSubclassOf<AWeaponItem> DefaultWeaponClass;
+
 	// Cache of any items we are in range of 
 	UPROPERTY()
 	TMap<uint32, TWeakObjectPtr<class AItemBase>> ItemsInRange;
 	// Threshold for how close the player needs to look at (1 = directly at it, 0.5 = 50% between looking and not...etc)
 	float ItemPopupVisibilityThreshold = 0.99f;
+
+	// Keeps track of the item the player is currently looking at (used for knowing which item we want to actually pickup and swap with)
+	// Will be nullptr if not looking at anything
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	class AItemBase* CurrentlyFocusedItem = nullptr;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }
