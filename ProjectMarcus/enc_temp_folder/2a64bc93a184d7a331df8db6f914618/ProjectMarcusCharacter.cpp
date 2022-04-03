@@ -241,20 +241,69 @@ void AProjectMarcusCharacter::FireWeapon()
 		return;
 	}
 
-	if (CombatState != ECombatState::ECS_Unoccupied)
-	{// We can only fire if we're doing nothing else
-		return;
+	EquippedWeapon->ConsumeAmmo();
+
+	// SFX
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySound2D(this, FireSound);
 	}
 
-	if (WeaponHasAmmo())
+	// Muzzle Flash VFX + Linetracing/Collision + Impact Particles + Kickback Anim
+	const USkeletalMeshComponent* WeaponMesh = EquippedWeapon->GetItemMesh();
+	if (WeaponMesh)
 	{
-		PlayBulletFireSfx();
-		SendBulletWithVfx();
-		ApplyWeaponKickback();
-		StartCrosshairBulletFire();
-		EquippedWeapon->ConsumeAmmo();
-		StartFireTimer();
+		// Find the socket at the tip of the barrel with its current position and rotation and spawn a particle system
+		const USkeletalMeshSocket* BarrelSocket = WeaponMesh->GetSocketByName("BarrelSocket");
+		if (BarrelSocket)
+		{
+			const FTransform SocketTransform = BarrelSocket->GetSocketTransform(WeaponMesh);
+
+			// Muzzle flash VFX
+			if (MuzzleFlash)
+			{
+				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+			}
+
+			FVector BulletHitLocation;
+			if (GetBulletHitLocation(SocketTransform.GetLocation(), BulletHitLocation))
+			{
+
+				if (GetWorld())
+				{
+					// Spawn impact particles
+					if (BulletImpactParticles)
+					{
+						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, BulletHitLocation);
+					}
+
+					// Spawn trail particles
+					if (BulletTrailParticles)
+					{
+						UParticleSystemComponent* Trail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform);
+						if (Trail)
+						{
+							Trail->SetVectorParameter("Target", BulletHitLocation); // makes it so the particles appear in a line from TraceStart  to TrailEndPoint
+						}
+					}
+				}
+			}
+		}
+
+		// Play Kickback animation
+		const USkeletalMeshComponent* CharMesh = GetMesh();
+		if (CharMesh)
+		{
+			UAnimInstance* AnimInstance = CharMesh->GetAnimInstance();
+			if (AnimInstance && HipFireMontage)
+			{
+				AnimInstance->Montage_Play(HipFireMontage);
+				AnimInstance->Montage_JumpToSection("StartFire");
+			}
+		}
 	}
+
+	StartCrosshairBulletFire();
 }
 
 void AProjectMarcusCharacter::CalculateCrosshairSpread(float DeltaTime)
@@ -311,7 +360,16 @@ void AProjectMarcusCharacter::FinishCrosshairBulletFire()
 void AProjectMarcusCharacter::FireButtonPressed()
 {
 	bFireButtonPressed = true;
-	FireWeapon();
+
+	if (WeaponHasAmmo())
+	{
+		FireWeapon();
+
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().SetTimer(AutoFireTimeHandle, this, &AProjectMarcusCharacter::AutoFireReset, AutomaticFireRate, true);
+		}
+	}
 }
 
 void AProjectMarcusCharacter::FireButtonReleased()
@@ -321,18 +379,19 @@ void AProjectMarcusCharacter::FireButtonReleased()
 
 void AProjectMarcusCharacter::AutoFireReset()
 {
-	CombatState = ECombatState::ECS_Unoccupied;
-
-	if (WeaponHasAmmo())
-	{
-		if (bFireButtonPressed)
+	if (!bFireButtonPressed || !WeaponHasAmmo())
+	{// Clear timer if we either stopped pressing fire, or ran out of ammo
+		if (GetWorld())
 		{
-			FireWeapon();
+			if (GetWorld()->GetTimerManager().IsTimerActive(AutoFireTimeHandle))
+			{
+				GetWorld()->GetTimerManager().ClearTimer(AutoFireTimeHandle);
+			}
 		}
 	}
 	else
 	{
-		// Reload
+		FireWeapon();
 	}
 }
 
@@ -480,84 +539,6 @@ void AProjectMarcusCharacter::CheckForItemsInRange()
 				}
 			}
 		}
-	}
-}
-
-void AProjectMarcusCharacter::PlayBulletFireSfx()
-{
-	if (FireSound)
-	{
-		UGameplayStatics::PlaySound2D(this, FireSound);
-	}
-}
-
-void AProjectMarcusCharacter::SendBulletWithVfx()
-{
-	// Muzzle Flash VFX + Linetracing/Collision + Impact Particles + Kickback Anim
-	const USkeletalMeshComponent* WeaponMesh = EquippedWeapon->GetItemMesh();
-	if (WeaponMesh)
-	{
-		// Find the socket at the tip of the barrel with its current position and rotation and spawn a particle system
-		const USkeletalMeshSocket* BarrelSocket = WeaponMesh->GetSocketByName("BarrelSocket");
-		if (BarrelSocket)
-		{
-			const FTransform SocketTransform = BarrelSocket->GetSocketTransform(WeaponMesh);
-
-			// Muzzle flash VFX
-			if (MuzzleFlash)
-			{
-				UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
-			}
-
-			FVector BulletHitLocation;
-			if (GetBulletHitLocation(SocketTransform.GetLocation(), BulletHitLocation))
-			{
-
-				if (GetWorld())
-				{
-					// Spawn impact particles
-					if (BulletImpactParticles)
-					{
-						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, BulletHitLocation);
-					}
-
-					// Spawn trail particles
-					if (BulletTrailParticles)
-					{
-						UParticleSystemComponent* Trail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform);
-						if (Trail)
-						{
-							Trail->SetVectorParameter("Target", BulletHitLocation); // makes it so the particles appear in a line from TraceStart  to TrailEndPoint
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-void AProjectMarcusCharacter::ApplyWeaponKickback()
-{
-	// Play Kickback animation
-	const USkeletalMeshComponent* CharMesh = GetMesh();
-	if (CharMesh)
-	{
-		UAnimInstance* AnimInstance = CharMesh->GetAnimInstance();
-		if (AnimInstance && HipFireMontage)
-		{
-			AnimInstance->Montage_Play(HipFireMontage);
-			AnimInstance->Montage_JumpToSection("StartFire");
-		}
-	}
-}
-
-void AProjectMarcusCharacter::StartFireTimer()
-{
-	CombatState = ECombatState::ECS_FireTimerInProgress;
-
-	if (GetWorld())
-	{
-		GetWorld()->GetTimerManager().SetTimer(AutoFireTimeHandle, this, &AProjectMarcusCharacter::AutoFireReset, AutomaticFireRate);
 	}
 }
 
