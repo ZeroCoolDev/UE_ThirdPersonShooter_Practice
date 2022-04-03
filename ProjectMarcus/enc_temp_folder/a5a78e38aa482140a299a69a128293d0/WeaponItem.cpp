@@ -38,10 +38,9 @@ void AWeaponItem::ThrowWeapon()
 		// Angle 20 degrees down
 		ImpulseDir = ImpulseDir.RotateAngleAxis(-20.f, MeshForward);
 
-		// After playing with it 'Random offset right or left' feels really bad
 		// Angle random degrees left or right (around the up vector)
-		//float RandomRotation = FMath::RandRange(-30.f, 30.f);
-		//ImpulseDir = ImpulseDir.RotateAngleAxis(RandomRotation, FVector::UpVector);
+		float RandomRotation = FMath::RandRange(15.f, 45.f);
+		ImpulseDir = ImpulseDir.RotateAngleAxis(RandomRotation, FVector::UpVector);
 
 		// Arbitrarily large number so the impulse in the world is obvious
 		ImpulseDir *= 20'000.f;
