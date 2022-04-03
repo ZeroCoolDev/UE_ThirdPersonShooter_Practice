@@ -236,12 +236,10 @@ void AProjectMarcusCharacter::SelectButtonReleased()
 
 void AProjectMarcusCharacter::FireWeapon()
 {
-	if (EquippedWeapon == nullptr)
+	if (EquippedWeapon)
 	{
-		return;
+		EquippedWeapon->ConsumeAmmo();
 	}
-
-	EquippedWeapon->ConsumeAmmo();
 
 	// SFX
 	if (FireSound)
@@ -250,14 +248,14 @@ void AProjectMarcusCharacter::FireWeapon()
 	}
 
 	// Muzzle Flash VFX + Linetracing/Collision + Impact Particles + Kickback Anim
-	const USkeletalMeshComponent* WeaponMesh = EquippedWeapon->GetItemMesh();
-	if (WeaponMesh)
+	const USkeletalMeshComponent* CharMesh = GetMesh();
+	if (CharMesh)
 	{
 		// Find the socket at the tip of the barrel with its current position and rotation and spawn a particle system
-		const USkeletalMeshSocket* BarrelSocket = WeaponMesh->GetSocketByName("BarrelSocket");
+		const USkeletalMeshSocket* BarrelSocket = CharMesh->GetSocketByName("BarrelSocket");
 		if (BarrelSocket)
 		{
-			const FTransform SocketTransform = BarrelSocket->GetSocketTransform(WeaponMesh);
+			const FTransform SocketTransform = BarrelSocket->GetSocketTransform(CharMesh);
 
 			// Muzzle flash VFX
 			if (MuzzleFlash)
@@ -291,15 +289,11 @@ void AProjectMarcusCharacter::FireWeapon()
 		}
 
 		// Play Kickback animation
-		const USkeletalMeshComponent* CharMesh = GetMesh();
-		if (CharMesh)
+		UAnimInstance* AnimInstance = CharMesh->GetAnimInstance();
+		if (AnimInstance && HipFireMontage)
 		{
-			UAnimInstance* AnimInstance = CharMesh->GetAnimInstance();
-			if (AnimInstance && HipFireMontage)
-			{
-				AnimInstance->Montage_Play(HipFireMontage);
-				AnimInstance->Montage_JumpToSection("StartFire");
-			}
+			AnimInstance->Montage_Play(HipFireMontage);
+			AnimInstance->Montage_JumpToSection("StartFire");
 		}
 	}
 

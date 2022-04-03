@@ -46,8 +46,6 @@ public:
 
 	void SetPickupWidgetVisibility(bool bVisible);
 
-	class USkeletalMeshComponent* GetItemMesh() { return ItemMesh; }
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
