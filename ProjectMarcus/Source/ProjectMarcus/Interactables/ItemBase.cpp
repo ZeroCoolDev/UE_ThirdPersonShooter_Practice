@@ -187,10 +187,19 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 				UCameraComponent* CharCamComp = CachedCharInPickupRange->GetFollowCamera();
 				if (CharCamComp)
 				{
-					const FRotator CameraRotation = CharCamComp->GetComponentRotation();
-					// Item rotation matches camera rotation BUT still keeps the angle of difference from when we picked it up
-					const FRotator ItemRotationThisFrame = FRotator(0.f, CameraRotation.Yaw + YawDiffBetweenCameraAndItem ,0.f);
-					SetActorRotation(ItemRotationThisFrame, ETeleportType::TeleportPhysics);
+					// Pickup Visual v1
+					// Item is rotated to match the cameras rotation but keeps all item rotations in tact. Player sees item in rotation matching when it was picked up, but always in front of the camera.
+					//const FRotator ItemOffsetCameraYaw = FRotator(0.f, CharCamComp->GetComponentRotation().Yaw + YawDiffBetweenCameraAndItem,0.f);
+					//SetActorRotation(ItemOffsetCameraYaw, ETeleportType::TeleportPhysics);
+
+					// Pickup Visual v2
+					// Item matches camera Yaw only. Player sees side face of the item matching camera Yaw rotation, but with original Pitch and Roll.
+					//const FRotator ItemMatchCameraYaw = FRotator(0.f, CharCamComp->GetComponentRotation().Yaw, 0.f);
+					//SetActorRotation(ItemMatchCameraYaw, ETeleportType::TeleportPhysics);
+
+					// Pickup Visual v3 (current)
+					// Item matches camera rotation exactly. Player sees the side face of the item matching camera rotation
+					SetActorRotation(CharCamComp->GetComponentRotation(), ETeleportType::TeleportPhysics);
 				}
 			}
 			else
