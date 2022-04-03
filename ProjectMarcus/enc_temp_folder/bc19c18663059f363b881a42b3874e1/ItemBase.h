@@ -24,7 +24,6 @@ enum class EItemState : uint8
 	EIS_EquipInterping UMETA(DisplayName = "EquipInterping"),
 	EIS_PickedUp UMETA(DisplayName = "PickedUp"),
 	EIS_Equipped UMETA(DisplayName = "Equipped"),
-	EIS_Drop	UMETA(DisplayName = "Drop"),
 	EIS_Falling UMETA(DisplayName = "Falling"),
 	EIR_Max UMETA(DisplayName = "InvalidMAX")
 };
@@ -47,8 +46,6 @@ public:
 	void SetVisibiity(bool bVisible);
 
 	void UpdateToState(EItemState State);
-
-	USkeletalMeshComponent* GetItemMesh() { return ItemMesh; }
 
 protected:
 	// Called when the game starts or when spawned

@@ -91,9 +91,6 @@ void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		PlayerInputComponent->BindAction("FireButton", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::FireButtonReleased);
 		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::AimButtonPressed);
 		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::AimButtonReleased);
-
-		PlayerInputComponent->BindAction("Select", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::SelectButtonPressed);
-		PlayerInputComponent->BindAction("Select", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::SelectButtonReleased);
 	}
 }
 
@@ -185,16 +182,6 @@ void AProjectMarcusCharacter::TurnAtRate_Mouse(float Rate)
 void AProjectMarcusCharacter::LookUpRate_Mouse(float Rate)
 {
 	AddControllerPitchInput(Rate * CurrentMouseLookUpRate); // snap to position
-}
-
-void AProjectMarcusCharacter::SelectButtonPressed()
-{
-	DropWeapon();
-}
-
-void AProjectMarcusCharacter::SelectButtonReleased()
-{
-
 }
 
 void AProjectMarcusCharacter::FireWeapon()
@@ -375,14 +362,6 @@ void AProjectMarcusCharacter::EquipWeapon(AWeaponItem* NewWeapon)
 
 		EquippedWeapon = NewWeapon;
 		EquippedWeapon->UpdateToState(EItemState::EIS_Equipped);
-	}
-}
-
-void AProjectMarcusCharacter::DropWeapon()
-{
-	if (EquippedWeapon)
-	{
-		EquippedWeapon->UpdateToState(EItemState::EIS_Drop);
 	}
 }
 

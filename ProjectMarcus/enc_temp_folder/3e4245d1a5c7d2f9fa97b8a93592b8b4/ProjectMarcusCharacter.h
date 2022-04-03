@@ -128,9 +128,6 @@ protected:
 	
 	void LookUpRate_Mouse(float Rate);
 
-	void SelectButtonPressed();
-	void SelectButtonReleased();
-
 	/* Camera Zoom / Sensitivity */
 
 	void AimButtonPressed() { bIsAiming = true; }
@@ -161,8 +158,6 @@ protected:
 
 	// Attaches the given weapon to our character mesh
 	void EquipWeapon(class AWeaponItem* NewWeapon);
-
-	void DropWeapon();
 
 private:
 	// Smoothly change camera FOV based off if the player is zooming or not

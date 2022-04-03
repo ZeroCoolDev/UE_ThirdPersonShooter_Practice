@@ -91,9 +91,7 @@ void AItemBase::UpdateToState(EItemState State)
 	switch (ItemState)
 	{
 	case EItemState::EIS_PickupWaiting: // Sitting on the ground waiting for someone to pick it up
-	{
 		ItemMesh->SetSimulatePhysics(false);
-		ItemMesh->SetEnableGravity(false);
 		ItemMesh->SetVisibility(true);
 		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
@@ -101,47 +99,21 @@ void AItemBase::UpdateToState(EItemState State)
 		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
 		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		break;
-	}
 	case EItemState::EIS_EquipInterping:
 		break;
 	case EItemState::EIS_PickedUp:
 		break;
 	case EItemState::EIS_Equipped:
-	{
 		ItemMesh->SetSimulatePhysics(false);
-		ItemMesh->SetEnableGravity(false);
 		ItemMesh->SetVisibility(true);
 		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
 		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		PickupWidget->SetVisibility(false);
 		break;
-	}
-	case EItemState::EIS_Drop:
-	{
-		FDetachmentTransformRules DetachmentRules(EDetachmentRule::KeepWorld, true);
-		ItemMesh->DetachFromComponent(DetachmentRules);
-		UpdateToState(EItemState::EIS_Falling);
-		break;
-	}
 	case EItemState::EIS_Falling:
-	{
-		ItemMesh->SetSimulatePhysics(true);
-		ItemMesh->SetEnableGravity(true);
-		ItemMesh->SetVisibility(true);
-		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ItemMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
-		ItemMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
-
-		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
-		PickupWidget->SetVisibility(false);
 		break;
-	}
 	default:
 		break;
 	}
