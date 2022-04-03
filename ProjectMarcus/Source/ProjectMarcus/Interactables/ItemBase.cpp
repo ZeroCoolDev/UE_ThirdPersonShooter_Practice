@@ -34,6 +34,8 @@ void AItemBase::BeginPlay()
 	// Setup overlap for trigger
 	ProximityTrigger->OnComponentBeginOverlap.AddDynamic(this, &AItemBase::OnBeginOverlap);
 	ProximityTrigger->OnComponentEndOverlap.AddDynamic(this, &AItemBase::OnEndOverlap);
+
+	UpdateToState(EItemState::EIS_PickupWaiting);
 }
 
 void AItemBase::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -80,5 +82,40 @@ void AItemBase::DeactivatePickupProperties()
 void AItemBase::SetVisibiity(bool bVisible)
 {
 	PickupWidget->SetVisibility(bVisible);
+}
+
+void AItemBase::UpdateToState(EItemState State)
+{
+	ItemState = State;
+
+	switch (ItemState)
+	{
+	case EItemState::EIS_PickupWaiting: // Sitting on the ground waiting for someone to pick it up
+		ItemMesh->SetSimulatePhysics(false);
+		ItemMesh->SetVisibility(true);
+		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+		break;
+	case EItemState::EIS_EquipInterping:
+		break;
+	case EItemState::EIS_PickedUp:
+		break;
+	case EItemState::EIS_Equipped:
+		ItemMesh->SetSimulatePhysics(false);
+		ItemMesh->SetVisibility(true);
+		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		break;
+	case EItemState::EIS_Falling:
+		break;
+	default:
+		break;
+	}
 }
 

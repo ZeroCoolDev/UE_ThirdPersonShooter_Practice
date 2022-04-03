@@ -344,12 +344,10 @@ AWeaponItem* AProjectMarcusCharacter::SpawnDefaultWeapon()
 	return nullptr;
 }
 
-void AProjectMarcusCharacter::EquipWeapon(class AWeaponItem* NewWeapon)
+void AProjectMarcusCharacter::EquipWeapon(AWeaponItem* NewWeapon)
 {
 	if (ensure(NewWeapon)) // TODO: We really gotta split the logic and classes between the weapon PICKUP item, and a weapon you actually use in the game
 	{
-		NewWeapon->DeactivatePickupProperties();
-
 		// Get the mesh
 		USkeletalMeshComponent* SkeletalMesh = GetMesh();
 		if (SkeletalMesh)
@@ -363,6 +361,7 @@ void AProjectMarcusCharacter::EquipWeapon(class AWeaponItem* NewWeapon)
 		}
 
 		EquippedWeapon = NewWeapon;
+		EquippedWeapon->UpdateToState(EItemState::EIS_Equipped);
 	}
 }
 

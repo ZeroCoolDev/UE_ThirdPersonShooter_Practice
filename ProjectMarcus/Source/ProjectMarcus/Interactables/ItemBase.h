@@ -17,6 +17,17 @@ enum class EItemRarity : uint8
 	EIR_Max UMETA(DisplayName = "InvalidMAX")
 };
 
+UENUM(BlueprintType)
+enum class EItemState : uint8
+{
+	EIS_PickupWaiting UMETA(DisplayName = "WaitingForPickup"),
+	EIS_EquipInterping UMETA(DisplayName = "EquipInterping"),
+	EIS_PickedUp UMETA(DisplayName = "PickedUp"),
+	EIS_Equipped UMETA(DisplayName = "Equipped"),
+	EIS_Falling UMETA(DisplayName = "Falling"),
+	EIR_Max UMETA(DisplayName = "InvalidMAX")
+};
+
 UCLASS()
 class PROJECTMARCUS_API AItemBase : public AActor
 {
@@ -25,6 +36,16 @@ class PROJECTMARCUS_API AItemBase : public AActor
 public:	
 	// Sets default values for this actor's properties
 	AItemBase();
+
+public:	
+	// Called every frame
+	virtual void Tick(float DeltaTime) override;
+
+	void DeactivatePickupProperties();
+
+	void SetVisibiity(bool bVisible);
+
+	void UpdateToState(EItemState State);
 
 protected:
 	// Called when the game starts or when spawned
@@ -35,15 +56,6 @@ protected:
 	UFUNCTION()
 	void OnEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	void DeactivatePickupProperties();
-
-	void SetVisibiity(bool bVisible);
-
-private:
 	// Item Mesh
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* ItemMesh = nullptr;
@@ -55,4 +67,7 @@ private:
 	// Detects if we are close enough to the pickup to perform vision checks (TODO: Which can also be done by the dot of our forward facing direction and the direction of the closest pickup)
 	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* ProximityTrigger = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EItemState ItemState = EItemState::EIS_PickupWaiting;
 };

@@ -13,6 +13,9 @@ UCLASS()
 class PROJECTMARCUS_API AWeaponItem : public AItemBase
 {
 	GENERATED_BODY()
+
+public:
+	void SetState(EItemState State) { ItemState = State; }
 	
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
