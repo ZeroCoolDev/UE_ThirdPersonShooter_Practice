@@ -5,6 +5,7 @@
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"
+#include "Camera/CameraComponent.h"
 
 // Sets default values
 AItemBase::AItemBase()
@@ -181,8 +182,16 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 
 				// New location based off curve and X/Y interpolation
 				FVector ItemLocationThisFrame = FVector(InterpXValue, InterpYValue, ZHeightThisFrame);
-
 				SetActorLocation(ItemLocationThisFrame, true, nullptr, ETeleportType::TeleportPhysics);
+
+				UCameraComponent* CharCamComp = CachedCharInPickupRange->GetFollowCamera();
+				if (CharCamComp)
+				{
+					const FRotator CameraRotation = CharCamComp->GetComponentRotation();
+					// Item rotation matches camera rotation BUT still keeps the angle of difference from when we picked it up
+					const FRotator ItemRotationThisFrame = FRotator(0.f, CameraRotation.Yaw + YawDiffBetweenCameraAndItem ,0.f);
+					SetActorRotation(ItemRotationThisFrame, ETeleportType::TeleportPhysics);
+				}
 			}
 			else
 			{
@@ -203,6 +212,20 @@ void AItemBase::StartPickupPreview()
 	{
 		GetWorld()->GetTimerManager().SetTimer(ItemInterpHandle, this, &AItemBase::FinishPickupPreview, ItemPickupPreviewDuration);
 	}
+
+	// Store the angle between camera and item (so we know what constant angle offset to keep the item at relative to the camera if the player rotates during pickup)
+	if (CachedCharInPickupRange)
+	{
+		UCameraComponent* CharCamComponent = CachedCharInPickupRange->GetFollowCamera();
+		if (CharCamComponent)
+		{
+			const float CameraYawRotation = CharCamComponent->GetComponentRotation().Yaw;
+			const float ItemYawRotataion = GetActorRotation().Yaw;
+
+			YawDiffBetweenCameraAndItem = ItemYawRotataion - CameraYawRotation;
+		}
+	}
+
 	UpdateToState(EItemState::EIS_PreviewInterping);
 }
 

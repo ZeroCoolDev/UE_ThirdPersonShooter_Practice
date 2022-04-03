@@ -104,9 +104,10 @@ protected:
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	FVector ItemPickupPreviewEndLocation = FVector::ZeroVector; // TODO: this might be able to be removed.  currently unused
-
-	FVector2D ItemPreviewInProgressXY = FVector2D::ZeroVector;
 	
+	// Initial Yaw rotation representing the difference between the cameras yaw and the items yaw
+	float YawDiffBetweenCameraAndItem = 0.f;
+
 	bool bPreviewInterping = false;
 	
 	FTimerHandle ItemInterpHandle;
