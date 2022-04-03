@@ -7,7 +7,7 @@
 #include "Sound/SoundCue.h"
 #include "DrawDebugHelpers.h"
 #include "Particles/ParticleSystemComponent.h"
-#include "ProjectMarcus/Interactables/WeaponItem.h"
+#include "ProjectMarcus/Interactables/ItemBase.h"
 
 // Sets default values
 AProjectMarcusCharacter::AProjectMarcusCharacter()
@@ -121,8 +121,6 @@ void AProjectMarcusCharacter::BeginPlay()
 		CameraData.DefaultFOV = FollowCam->FieldOfView;
 		CurrentFOV = CameraData.DefaultFOV;
 	}
-
-	SpawnDefaultWeapon();
 
 	CurrentGamepadTurnRate = MoveData.GamepadTurnRate;
 	CurrentGamepadLookUpRate = MoveData.GamepadLookUpRate;
@@ -328,32 +326,6 @@ void AProjectMarcusCharacter::AutoFireReset()
 	else
 	{
 		FireWeapon();
-	}
-}
-
-void AProjectMarcusCharacter::SpawnDefaultWeapon()
-{
-	if (DefaultWeaponClass)
-	{
-		if (GetWorld())
-		{
-			// Spawn the weapon
-			AWeaponItem* DefaultWeapon = GetWorld()->SpawnActor<AWeaponItem>(DefaultWeaponClass);
-
-			// Get the mesh
-			USkeletalMeshComponent* SkeletalMesh = GetMesh();
-			if (SkeletalMesh)
-			{
-				const USkeletalMeshSocket* HandSocket = SkeletalMesh->GetSocketByName(FName("RightHandSocket"));
-				if (HandSocket)
-				{
-					// Attach the weapon to the hand on the mesh
-					HandSocket->AttachActor(DefaultWeapon, SkeletalMesh);
-				}
-			}
-
-			EquippedWeapon = DefaultWeapon;
-		}
 	}
 }
 

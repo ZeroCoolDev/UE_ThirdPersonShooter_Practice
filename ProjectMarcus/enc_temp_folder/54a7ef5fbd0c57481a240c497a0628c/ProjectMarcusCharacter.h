@@ -95,66 +95,53 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
-	/* Input / Locomotion */
-
 	// Handles forwards/backwards input
 	void MoveForward(float Value);
-	
+
 	// Handles side to side input
 	void MoveRight(float Value);
-	
+
 	/**
 	 * Called via input to turn at a given rate (effects yaw)
 	 * @param Rate is a normalized rate, i.e. 1.0 = 100%, 0.5 = 50% of desired turn rate.
 	 */
 	void TurnAtRate_Gamepad(float Rate);
-	
+
 	/**
 	 * Called via input to look up/down at a given rate (effects pitch)
 	 * @param Rate is a normalized rate, i.e. 1.0 = 100%, 0.5 = 50% of desired look turn rate.
 	 */
 	void LookUpAtRate_Gamepad(float Rate);
-	
+
 	/**
 	 * Rotate controller based off Mouse X movement
 	 * @param Rate		The input value from mouse
 	 */
 	void TurnAtRate_Mouse(float Rate);
-	
+
 	/**
 	 * Rotate controller based off Mouse Y movement
 	 * @param Rate		The input value from mouse
 	 */
-	
-	void LookUpRate_Mouse(float Rate);
+	 void LookUpRate_Mouse(float Rate);
 
-	/* Camera Zoom / Sensitivity */
+	void FireWeapon();
+
+	void CalculateCrosshairSpread(float DeltaTime);
+
+	UFUNCTION()
+	void StartCrosshairBulletFire();
+	UFUNCTION()
+	void FinishCrosshairBulletFire();
+
+	void FireButtonPressed();
+	void FireButtonReleased();
+	UFUNCTION()
+	void AutoFireReset();
 
 	void AimButtonPressed() { bIsAiming = true; }
 
 	void AimButtonReleased() { bIsAiming = false; }
-
-	/* Crosshair movement */
-	
-	void CalculateCrosshairSpread(float DeltaTime);
-	
-	UFUNCTION()
-	void StartCrosshairBulletFire();
-	
-	UFUNCTION()
-	void FinishCrosshairBulletFire();
-
-	/* Weapon Fire */
-	void FireWeapon();
-
-	void FireButtonPressed();
-
-	void FireButtonReleased();
-
-	UFUNCTION()
-	void AutoFireReset();
-
-	void SpawnDefaultWeapon();
 
 private:
 	// Smoothly change camera FOV based off if the player is zooming or not
@@ -252,13 +239,6 @@ private:
 	float CurrentMouseTurnRate = 0.f;
 	float CurrentMouseLookUpRate = 0.f;
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	class AWeaponItem* EquippedWeapon = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	TSubclassOf<AWeaponItem> DefaultWeaponClass;
-
-	// Cache of any items we are in range of 
 	UPROPERTY()
 	TMap<uint32, TWeakObjectPtr<class AItemBase>> ItemsInRange;
 	// Threshold for how close the player needs to look at (1 = directly at it, 0.5 = 50% between looking and not...etc)
