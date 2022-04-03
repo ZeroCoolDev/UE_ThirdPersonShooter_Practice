@@ -173,8 +173,14 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 				// CurveValue > 1.0 ItemLocationThisFrame will be higher than DistFromItemToCameraUp
 				// CurveValue < 1.0 ItemLocationThisFrame will be lower than DistFromItemToCameraUp
 				const float ZHeightThisFrame = ItemPickupPreviewStartLocation.Z + (CurveValue * BaseZHeight);
-				// Set the Z location of the item only
-				FVector ItemLocationThisFrame = FVector(ItemPickupPreviewStartLocation.X, ItemPickupPreviewStartLocation.Y, ZHeightThisFrame);
+
+				const FVector ItemCurrentLocation = GetActorLocation();
+				// Val = A + (B-A) * (t * speed)
+				const float InterpXValue = FMath::FInterpTo(ItemCurrentLocation.X, CameraInterpLocation.X, DeltaTime, 30.f);
+				const float InterpYValue = FMath::FInterpTo(ItemCurrentLocation.Y, CameraInterpLocation.Y, DeltaTime, 30.f);
+
+				// New location based off curve and X/Y interpolation
+				FVector ItemLocationThisFrame = FVector(InterpXValue, InterpYValue, ZHeightThisFrame);
 
 				SetActorLocation(ItemLocationThisFrame, true, nullptr, ETeleportType::TeleportPhysics);
 			}

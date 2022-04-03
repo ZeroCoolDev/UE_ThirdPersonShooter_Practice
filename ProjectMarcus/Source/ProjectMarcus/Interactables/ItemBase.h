@@ -98,12 +98,14 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class UCurveFloat* ItemZPickupPreviewCurve;
 
-	/* Item Pickup */
+	/* Item Pickup - TODO: move into data struct probably */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	FVector ItemPickupPreviewStartLocation = FVector::ZeroVector;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	FVector ItemPickupPreviewEndLocation = FVector::ZeroVector;
+	FVector ItemPickupPreviewEndLocation = FVector::ZeroVector; // TODO: this might be able to be removed.  currently unused
+
+	FVector2D ItemPreviewInProgressXY = FVector2D::ZeroVector;
 	
 	bool bPreviewInterping = false;
 	
