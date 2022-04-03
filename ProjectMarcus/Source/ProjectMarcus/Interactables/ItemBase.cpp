@@ -35,39 +35,29 @@ void AItemBase::UpdateToState(EItemState State)
 
 	switch (ItemState)
 	{
-	case EItemState::EIS_PickupWaiting: // Sitting on the ground waiting for someone to pick it up
+	case EItemState::EIS_PickupWaiting:
 	{
-		ItemMesh->SetSimulatePhysics(false);
-		ItemMesh->SetEnableGravity(false);
-		ItemMesh->SetVisibility(true);
-		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+		// Mesh
+		SetMeshVibility(true);
+		DisableMeshPhysycs();
+		
+		// Pickup Trigger
 		EnableProximityTrigger();
-		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
-		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 		break;
 	}
 	case EItemState::EIS_PickUp:
 	{
-		ItemMesh->SetSimulatePhysics(false);
-		ItemMesh->SetEnableGravity(false);
-		ItemMesh->SetVisibility(true);
-		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+		// Mesh
+		SetMeshVibility(true);
+		DisableMeshPhysycs();
+		
+		// Pickup Trigger
 		DisableProximityTrigger();
-		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		PickupWidget->SetVisibility(false);
+		// HUD
+		SetPickupWidgetVisibility(false);
 
-		ItemPickupPreviewStartLocation = GetActorLocation();
-		if (GetWorld())
-		{
-			GetWorld()->GetTimerManager().SetTimer(ItemInterpHandle, this, &AItemBase::FinishPickupPreview, ItemPickupPreviewDuration);
-		}
-		UpdateToState(EItemState::EIS_PreviewInterping);
+		StartPickupPreview();
 		break;
 	}
 	case EItemState::EIS_PreviewInterping:
@@ -77,40 +67,38 @@ void AItemBase::UpdateToState(EItemState State)
 	}
 	case EItemState::EIS_Equipped:
 	{
-		ItemMesh->SetSimulatePhysics(false);
-		ItemMesh->SetEnableGravity(false);
-		ItemMesh->SetVisibility(true);
-		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-
+		// Mesh
+		SetMeshVibility(true);
+		DisableMeshPhysycs();
+		
+		// Pickup Trigger
 		DisableProximityTrigger();
-		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		PickupWidget->SetVisibility(false);
+		// HUD
+		SetPickupWidgetVisibility(false);
 		break;
 	}
 	case EItemState::EIS_Drop:
 	{
+		// Removes the item mesh from any component it was attached to (character mesh)
 		FDetachmentTransformRules DetachmentRules(EDetachmentRule::KeepWorld, true);
 		ItemMesh->DetachFromComponent(DetachmentRules);
+
+		// Move directly into falling state
 		UpdateToState(EItemState::EIS_Falling);
 		break;
 	}
 	case EItemState::EIS_Falling:
 	{
-		ItemMesh->SetSimulatePhysics(true);
-		ItemMesh->SetEnableGravity(true);
-		ItemMesh->SetVisibility(true);
-		ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ItemMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
-		ItemMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		// Mesh
+		SetMeshVibility(true);
+		EnableMeshPhysics();
 
+		// Pickup Trigger
 		DisableProximityTrigger();
-		ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
-		ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 
-		PickupWidget->SetVisibility(false);
+		// HUD
+		SetPickupWidgetVisibility(false);
 		break;
 	}
 	default:
@@ -129,7 +117,7 @@ void AItemBase::BeginPlay()
 	Super::BeginPlay();
 
 	// Hide by default
-	PickupWidget->SetVisibility(false);
+	SetPickupWidgetVisibility(false);
 
 	UpdateToState(EItemState::EIS_PickupWaiting);
 }
@@ -202,6 +190,16 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 	}
 }
 
+void AItemBase::StartPickupPreview()
+{
+	ItemPickupPreviewStartLocation = GetActorLocation();
+	if (GetWorld())
+	{
+		GetWorld()->GetTimerManager().SetTimer(ItemInterpHandle, this, &AItemBase::FinishPickupPreview, ItemPickupPreviewDuration);
+	}
+	UpdateToState(EItemState::EIS_PreviewInterping);
+}
+
 void AItemBase::FinishPickupPreview()
 {
 	bPreviewInterping = false;
@@ -226,6 +224,9 @@ void AItemBase::EnableProximityTrigger()
 			ProximityTrigger->OnComponentEndOverlap.AddDynamic(this, &AItemBase::OnEndOverlap);
 		}
 	}
+
+	ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Overlap);
+	ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }
 
 void AItemBase::DisableProximityTrigger()
@@ -241,20 +242,30 @@ void AItemBase::DisableProximityTrigger()
 			ProximityTrigger->OnComponentEndOverlap.RemoveDynamic(this, &AItemBase::OnEndOverlap);
 		}
 	}
+
+	ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	ProximityTrigger->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AItemBase::EnableMeshPhysics()
 {
-
+	ItemMesh->SetSimulatePhysics(true);
+	ItemMesh->SetEnableGravity(true);
+	ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	ItemMesh->SetCollisionResponseToChannel(ECollisionChannel::ECC_WorldStatic, ECollisionResponse::ECR_Block);
+	ItemMesh->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
 }
 
 void AItemBase::DisableMeshPhysycs()
 {
-
+	ItemMesh->SetSimulatePhysics(false);
+	ItemMesh->SetEnableGravity(false);
+	ItemMesh->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	ItemMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AItemBase::SetMeshVibility(bool bVisible)
 {
-
+	ItemMesh->SetVisibility(bVisible);
 }
 

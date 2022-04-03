@@ -58,6 +58,7 @@ protected:
 	// handles item interpolation when in the EIS_PreviewInterping state
 	void CheckForItemPreviewInterp(float DeltaTime);
 
+	void StartPickupPreview();
 	void FinishPickupPreview();
 
 	void EnableProximityTrigger();
