@@ -73,6 +73,12 @@ void AItemBase::Tick(float DeltaTime)
 
 }
 
+void AItemBase::DeactivatePickupProperties()
+{
+	ProximityTrigger->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+	SetVisibiity(false);
+}
+
 void AItemBase::SetVisibiity(bool bVisible)
 {
 	PickupWidget->SetVisibility(bVisible);

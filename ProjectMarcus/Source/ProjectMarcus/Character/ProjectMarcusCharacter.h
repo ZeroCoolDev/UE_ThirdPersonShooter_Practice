@@ -164,6 +164,9 @@ protected:
 
 	void DropWeapon();
 
+	// Drops currently equipped weapon, and equips whatever weapon is currently being looked at
+	void SwapWeapon(AWeaponItem* WeaponToSwap);
+
 private:
 	// Smoothly change camera FOV based off if the player is zooming or not
 	void UpdateCameraZoom(float DeltaTime);
@@ -271,6 +274,11 @@ private:
 	TMap<uint32, TWeakObjectPtr<class AItemBase>> ItemsInRange;
 	// Threshold for how close the player needs to look at (1 = directly at it, 0.5 = 50% between looking and not...etc)
 	float ItemPopupVisibilityThreshold = 0.99f;
+
+	// Keeps track of the item the player is currently looking at (used for knowing which item we want to actually pickup and swap with)
+	// Will be nullptr if not looking at anything
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	class AItemBase* CurrentlyFocusedItem = nullptr;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }

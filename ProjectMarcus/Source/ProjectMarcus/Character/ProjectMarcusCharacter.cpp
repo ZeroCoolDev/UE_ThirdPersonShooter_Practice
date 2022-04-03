@@ -111,6 +111,11 @@ void AProjectMarcusCharacter::RemoveItemInRange(AItemBase* ItemOutOfRange)
 	{
 		ItemOutOfRange->SetVisibiity(false);
 		ItemsInRange.Remove(ItemOutOfRange->GetUniqueID());
+		// If the item we are no longer in range of was our currently focused item, remove it
+		if (CurrentlyFocusedItem && ItemOutOfRange->GetUniqueID() == CurrentlyFocusedItem->GetUniqueID())
+		{
+			CurrentlyFocusedItem = nullptr;
+		}
 	}
 }
 
@@ -189,7 +194,10 @@ void AProjectMarcusCharacter::LookUpRate_Mouse(float Rate)
 
 void AProjectMarcusCharacter::SelectButtonPressed()
 {
-	DropWeapon();
+	if (CurrentlyFocusedItem)
+	{
+		SwapWeapon(Cast<AWeaponItem>(CurrentlyFocusedItem));
+	}
 }
 
 void AProjectMarcusCharacter::SelectButtonReleased()
@@ -359,7 +367,7 @@ AWeaponItem* AProjectMarcusCharacter::SpawnDefaultWeapon()
 
 void AProjectMarcusCharacter::EquipWeapon(AWeaponItem* NewWeapon)
 {
-	if (ensure(NewWeapon)) // TODO: We really gotta split the logic and classes between the weapon PICKUP item, and a weapon you actually use in the game
+	if (NewWeapon) // TODO: We really gotta split the logic and classes between the weapon PICKUP item, and a weapon you actually use in the game
 	{
 		// Get the mesh
 		USkeletalMeshComponent* SkeletalMesh = GetMesh();
@@ -385,6 +393,12 @@ void AProjectMarcusCharacter::DropWeapon()
 		EquippedWeapon->UpdateToState(EItemState::EIS_Drop);
 		EquippedWeapon->ThrowWeapon();
 	}
+}
+
+void AProjectMarcusCharacter::SwapWeapon(AWeaponItem* WeaponToSwap)
+{
+	DropWeapon();
+	EquipWeapon(WeaponToSwap);
 }
 
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)
@@ -450,7 +464,21 @@ void AProjectMarcusCharacter::CheckForItemsInRange()
 				FVector DirToThisItem = Item->GetActorLocation() - CrosshairLocationInWorld;
 				float LookingAtItemAmount = FVector::DotProduct(LookDir.GetSafeNormal(), DirToThisItem.GetSafeNormal());
 				// If the look vector and direction to item is close, toggle the popup visible, otherwise toggle it off
-				Item->SetVisibiity(LookingAtItemAmount >= ItemPopupVisibilityThreshold);
+				if (LookingAtItemAmount >= ItemPopupVisibilityThreshold)
+				{
+					Item->SetVisibiity(true);
+					// Regardless if one was set already, update the currently focused item to the latest one looking at
+					CurrentlyFocusedItem = Item;
+				}
+				else
+				{
+					// If the item we are no longer looking at was our currently focused item, remove it
+					if (CurrentlyFocusedItem && Item->GetUniqueID() == CurrentlyFocusedItem->GetUniqueID())
+					{
+						CurrentlyFocusedItem = nullptr;
+					}
+					Item->SetVisibiity(false);
+				}
 			}
 		}
 	}
