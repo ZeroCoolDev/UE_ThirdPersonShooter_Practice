@@ -29,7 +29,6 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	void SetVisibiity(bool bVisible);
-	void TogglePickupWidgetVisibility();
 
 private:
 	// Item Mesh

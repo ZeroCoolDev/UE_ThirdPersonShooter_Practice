@@ -241,6 +241,8 @@ private:
 
 	UPROPERTY()
 	TMap<uint32, TWeakObjectPtr<class AItemBase>> ItemsInRange;
+	// Threshold for how close the player needs to look at (1 = directly at it, 0.5 = 50% between looking and not...etc)
+	float ItemPopupVisibilityThreshold = 0.99f;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }

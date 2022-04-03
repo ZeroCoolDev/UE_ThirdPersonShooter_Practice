@@ -82,11 +82,3 @@ void AItemBase::SetVisibiity(bool bVisible)
 	PickupWidget->SetVisibility(bVisible);
 }
 
-void AItemBase::TogglePickupWidgetVisibility()
-{
-	if (PickupWidget)
-	{
-		PickupWidget->SetVisibility(!PickupWidget->IsWidgetVisible());
-	}
-}
-

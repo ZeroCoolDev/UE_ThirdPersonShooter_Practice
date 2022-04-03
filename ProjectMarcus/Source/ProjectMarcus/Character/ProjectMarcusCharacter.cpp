@@ -376,22 +376,23 @@ void AProjectMarcusCharacter::CheckForItemsInRange()
 {
 	if (ItemsInRange.Num())
 	{
+		// Get where the player is actually "looking" (where the crosshairs are outwards)
+		// not where the PlayerController is facing (because they're offset to the side) wo we can't use GetActorForwardLocation()
+		FVector CrosshairLocationInWorld;
+		FVector CrosshairDirectionInWorld;
+		GetCrosshairWorldPosition(CrosshairLocationInWorld, CrosshairDirectionInWorld);
+		FVector LookDir = CrosshairLocationInWorld + CrosshairDirectionInWorld * TRACE_FAR;
+
 		for (auto It = ItemsInRange.CreateConstIterator(); It; ++It)
 		{
 			AItemBase* Item = Cast<AItemBase>(It->Value);
 			if (Item)
 			{
-				// Check if looking at item (TODO: use dot product with player look direction and direction to this item)
-				FHitResult ItemTraceResult;
-				FVector HitLocation;
-				if (TraceFromCrosshairs(ItemTraceResult, HitLocation))
-				{
-					AItemBase* ItemSeen = Cast<AItemBase>(ItemTraceResult.Actor);
-					if (ItemSeen)
-					{
-						ItemSeen->TogglePickupWidgetVisibility();
-					}
-				}
+				// Must use crosshair location again vs GetActorLocation() because we want to know the difference in LOOK vectors, not position vectors
+				FVector DirToThisItem = Item->GetActorLocation() - CrosshairLocationInWorld;
+				float LookingAtItemAmount = FVector::DotProduct(LookDir.GetSafeNormal(), DirToThisItem.GetSafeNormal());
+				// If the look vector and direction to item is close, toggle the popup visible, otherwise toggle it off
+				Item->SetVisibiity(LookingAtItemAmount >= ItemPopupVisibilityThreshold);
 			}
 		}
 	}
