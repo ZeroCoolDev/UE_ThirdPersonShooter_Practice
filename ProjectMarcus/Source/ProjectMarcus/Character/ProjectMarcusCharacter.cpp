@@ -122,7 +122,7 @@ void AProjectMarcusCharacter::BeginPlay()
 		CurrentFOV = CameraData.DefaultFOV;
 	}
 
-	SpawnDefaultWeapon();
+	EquipWeapon(SpawnDefaultWeapon());
 
 	CurrentGamepadTurnRate = MoveData.GamepadTurnRate;
 	CurrentGamepadLookUpRate = MoveData.GamepadLookUpRate;
@@ -331,29 +331,38 @@ void AProjectMarcusCharacter::AutoFireReset()
 	}
 }
 
-void AProjectMarcusCharacter::SpawnDefaultWeapon()
+AWeaponItem* AProjectMarcusCharacter::SpawnDefaultWeapon()
 {
 	if (DefaultWeaponClass)
 	{
 		if (GetWorld())
 		{
 			// Spawn the weapon
-			AWeaponItem* DefaultWeapon = GetWorld()->SpawnActor<AWeaponItem>(DefaultWeaponClass);
-
-			// Get the mesh
-			USkeletalMeshComponent* SkeletalMesh = GetMesh();
-			if (SkeletalMesh)
-			{
-				const USkeletalMeshSocket* HandSocket = SkeletalMesh->GetSocketByName(FName("RightHandSocket"));
-				if (HandSocket)
-				{
-					// Attach the weapon to the hand on the mesh
-					HandSocket->AttachActor(DefaultWeapon, SkeletalMesh);
-				}
-			}
-
-			EquippedWeapon = DefaultWeapon;
+			return Cast<AWeaponItem>(GetWorld()->SpawnActor<AWeaponItem>(DefaultWeaponClass));
 		}
+	}
+	return nullptr;
+}
+
+void AProjectMarcusCharacter::EquipWeapon(class AWeaponItem* NewWeapon)
+{
+	if (ensure(NewWeapon)) // TODO: We really gotta split the logic and classes between the weapon PICKUP item, and a weapon you actually use in the game
+	{
+		NewWeapon->DeactivatePickupProperties();
+
+		// Get the mesh
+		USkeletalMeshComponent* SkeletalMesh = GetMesh();
+		if (SkeletalMesh)
+		{
+			const USkeletalMeshSocket* HandSocket = SkeletalMesh->GetSocketByName(FName("RightHandSocket"));
+			if (HandSocket)
+			{
+				// Attach the weapon to the hand on the mesh
+				HandSocket->AttachActor(NewWeapon, SkeletalMesh);
+			}
+		}
+
+		EquippedWeapon = NewWeapon;
 	}
 }
 

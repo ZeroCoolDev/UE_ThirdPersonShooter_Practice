@@ -154,7 +154,10 @@ protected:
 	UFUNCTION()
 	void AutoFireReset();
 
-	void SpawnDefaultWeapon();
+	class AWeaponItem* SpawnDefaultWeapon();
+
+	// Attaches the given weapon to our character mesh
+	void EquipWeapon(class AWeaponItem* NewWeapon);
 
 private:
 	// Smoothly change camera FOV based off if the player is zooming or not
