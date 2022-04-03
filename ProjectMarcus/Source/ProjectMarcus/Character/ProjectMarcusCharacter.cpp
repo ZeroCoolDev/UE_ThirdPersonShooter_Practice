@@ -236,6 +236,11 @@ void AProjectMarcusCharacter::SelectButtonReleased()
 
 void AProjectMarcusCharacter::FireWeapon()
 {
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->ConsumeAmmo();
+	}
+
 	// SFX
 	if (FireSound)
 	{
@@ -348,13 +353,16 @@ void AProjectMarcusCharacter::FinishCrosshairBulletFire()
 
 void AProjectMarcusCharacter::FireButtonPressed()
 {
-	bFireButtonPressed = true;
-
-	FireWeapon();
-	
-	if (GetWorld())
+	if (WeaponHasAmmo())
 	{
-		GetWorld()->GetTimerManager().SetTimer(AutoFireTimeHandle, this, &AProjectMarcusCharacter::AutoFireReset, AutomaticFireRate, true);
+		bFireButtonPressed = true;
+
+		FireWeapon();
+
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().SetTimer(AutoFireTimeHandle, this, &AProjectMarcusCharacter::AutoFireReset, AutomaticFireRate, true);
+		}
 	}
 }
 
@@ -365,8 +373,8 @@ void AProjectMarcusCharacter::FireButtonReleased()
 
 void AProjectMarcusCharacter::AutoFireReset()
 {
-	if (!bFireButtonPressed)
-	{
+	if (!bFireButtonPressed || !WeaponHasAmmo())
+	{// Clear timer if we either stopped pressing fire, or ran out of ammo
 		if (GetWorld())
 		{
 			if (GetWorld()->GetTimerManager().IsTimerActive(AutoFireTimeHandle))
@@ -434,6 +442,15 @@ void AProjectMarcusCharacter::FillAmmoMap()
 {
 	AmmoMap.Empty();
 	AmmoMap = { {EAmmoType::EAT_9mm, StartingARAmmo}, {EAmmoType::EAT_AR, StartingARAmmo} };
+}
+
+bool AProjectMarcusCharacter::WeaponHasAmmo()
+{
+	if (EquippedWeapon)
+	{
+		return EquippedWeapon->GetAmmoCount() > 0;
+	}
+	return false;
 }
 
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)

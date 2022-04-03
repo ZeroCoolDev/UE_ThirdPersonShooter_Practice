@@ -187,6 +187,8 @@ protected:
 
 	void FillAmmoMap();
 
+	bool WeaponHasAmmo();
+
 private:
 	// Smoothly change camera FOV based off if the player is zooming or not
 	void UpdateCameraZoom(float DeltaTime);
