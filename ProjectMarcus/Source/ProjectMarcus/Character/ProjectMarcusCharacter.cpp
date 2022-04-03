@@ -383,6 +383,7 @@ void AProjectMarcusCharacter::DropWeapon()
 	if (EquippedWeapon)
 	{
 		EquippedWeapon->UpdateToState(EItemState::EIS_Drop);
+		EquippedWeapon->ThrowWeapon();
 	}
 }
 

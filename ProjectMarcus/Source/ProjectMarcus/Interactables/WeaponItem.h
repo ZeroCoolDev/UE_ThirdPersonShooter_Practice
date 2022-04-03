@@ -15,16 +15,20 @@ class PROJECTMARCUS_API AWeaponItem : public AItemBase
 	GENERATED_BODY()
 
 public:
+	AWeaponItem();
+
+	virtual void Tick(float DeltaTime) override;
+
 	void SetState(EItemState State) { ItemState = State; }
-	
+
+	// Adds an impulse and rotation to the weapon
+	void ThrowWeapon();
+
+protected:
+	void StopFalling();
+
 private:
-	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	FName ItemName = FName("Default");
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	int32 ItemCount = 0;
-
-	// Effects how many stars the pickup widget has
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	EItemRarity ItemRarity = EItemRarity::EIR_Common;
+	FTimerHandle ThrowWeaponTimer;
+	float ThrowDuration = 0.7f;
+	bool bFalling = false;
 };

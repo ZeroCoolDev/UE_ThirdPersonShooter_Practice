@@ -71,6 +71,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class USphereComponent* ProximityTrigger = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FName ItemName = FName("Default");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 ItemCount = 0;
+
+	// Effects how many stars the pickup widget has
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EItemRarity ItemRarity = EItemRarity::EIR_Common;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	EItemState ItemState = EItemState::EIS_PickupWaiting;
 };
