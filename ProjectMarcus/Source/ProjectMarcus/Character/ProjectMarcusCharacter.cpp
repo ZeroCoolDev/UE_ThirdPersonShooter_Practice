@@ -359,10 +359,10 @@ void AProjectMarcusCharacter::FinishCrosshairBulletFire()
 
 void AProjectMarcusCharacter::FireButtonPressed()
 {
+	bFireButtonPressed = true;
+
 	if (WeaponHasAmmo())
 	{
-		bFireButtonPressed = true;
-
 		FireWeapon();
 
 		if (GetWorld())
