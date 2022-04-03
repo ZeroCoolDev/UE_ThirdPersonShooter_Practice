@@ -161,9 +161,11 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 		{
 			if (ItemZPickupPreviewCurve)
 			{
-				// Get current curve value
 				const float ElapsedTime = GetWorldTimerManager().GetTimerElapsed(ItemInterpHandle);
-				const float CurveValue = ItemZPickupPreviewCurve->GetFloatValue(ElapsedTime);
+
+				/* Calculate Location */
+
+				const float ZPositionCurveValue = ItemZPickupPreviewCurve->GetFloatValue(ElapsedTime);
 
 				// Determine base Z height for when Curve is at 1.0
 				const FVector CameraInterpLocation = CachedCharInPickupRange->GetCameraInterpLocation(); // Get location in front of the camera
@@ -173,7 +175,7 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 				// CurveValue = 1.0 ItemLocationThisFrame will be exactly at DistFromItemToCameraUp. 
 				// CurveValue > 1.0 ItemLocationThisFrame will be higher than DistFromItemToCameraUp
 				// CurveValue < 1.0 ItemLocationThisFrame will be lower than DistFromItemToCameraUp
-				const float ZHeightThisFrame = ItemPickupPreviewStartLocation.Z + (CurveValue * BaseZHeight);
+				const float ZHeightThisFrame = ItemPickupPreviewStartLocation.Z + (ZPositionCurveValue * BaseZHeight);
 
 				const FVector ItemCurrentLocation = GetActorLocation();
 				// Val = A + (B-A) * (t * speed)
@@ -183,6 +185,8 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 				// New location based off curve and X/Y interpolation
 				FVector ItemLocationThisFrame = FVector(InterpXValue, InterpYValue, ZHeightThisFrame);
 				SetActorLocation(ItemLocationThisFrame, true, nullptr, ETeleportType::TeleportPhysics);
+
+				/* Calculate Rotation */
 
 				UCameraComponent* CharCamComp = CachedCharInPickupRange->GetFollowCamera();
 				if (CharCamComp)
@@ -200,6 +204,14 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 					// Pickup Visual v3 (current)
 					// Item matches camera rotation exactly. Player sees the side face of the item matching camera rotation
 					SetActorRotation(CharCamComp->GetComponentRotation(), ETeleportType::TeleportPhysics);
+				}
+
+				/* Calculate Scale */
+				if (ItemScaleCurve)
+				{
+					// CurveValue = 1.0 most of the curve till it decreases sharply at the end (shrinking at the end)
+					const float ScaleCurveValue = ItemScaleCurve->GetFloatValue(ElapsedTime);
+					SetActorScale3D(FVector(ScaleCurveValue, ScaleCurveValue, ScaleCurveValue));
 				}
 			}
 			else
@@ -241,6 +253,8 @@ void AItemBase::StartPickupPreview()
 void AItemBase::FinishPickupPreview()
 {
 	bPreviewInterping = false;
+	// reset scale of mesh since we shrunk it during preview
+	SetActorScale3D(FVector(1.f));
 	if (CachedCharInPickupRange)
 	{
 		// Once we pick it up we turn off overlaps, so the organic "OnEndOverlap" which removes this item from range will not fire. Need to fire it manually on pickup

@@ -108,6 +108,10 @@ protected:
 	// Initial Yaw rotation representing the difference between the cameras yaw and the items yaw
 	float YawDiffBetweenCameraAndItem = 0.f;
 
+	// How to scale the item during pickup
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class UCurveFloat* ItemScaleCurve;
+
 	bool bPreviewInterping = false;
 	
 	FTimerHandle ItemInterpHandle;
