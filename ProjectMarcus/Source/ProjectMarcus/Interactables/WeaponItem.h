@@ -82,5 +82,6 @@ private:
 	bool bFalling = false;
 
 	// True when moving the clip while reloading. TODO: Can I just use the combat state instead?
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	bool bMovingClip = false;
 };

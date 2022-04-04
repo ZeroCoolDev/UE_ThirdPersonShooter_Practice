@@ -51,6 +51,11 @@ AProjectMarcusCharacter::AProjectMarcusCharacter()
 		MoveComp->JumpZVelocity = MoveData.JumpVelocity; // how high the character jumps
 		MoveComp->AirControl = MoveData.AirControl; // 0 = no control. 1 = full control at max speed
 	}
+
+	if(HandSceneComponent == nullptr)
+	{
+		HandSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HandSceneComponent"));
+	}
 }
 
 // Called every frame
@@ -495,10 +500,14 @@ void AProjectMarcusCharacter::GrabClip()
 			int32 ClipBoneIndex = WeaponMesh->GetBoneIndex(EquippedWeapon->GetClipBoneName());
 			ClipTransform = WeaponMesh->GetBoneTransform(ClipBoneIndex);
 
-			FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, true); // KeepRelative - because we want to keep relative location from the hand to the clip
-			// attaching an empty (for now) scene component to our characters mesh, at the Hand_L slot
-			HandSceneComponent->AttachToComponent(GetMesh(), AttachmentRules, FName("Hand_L"));
-			HandSceneComponent->SetWorldTransform(ClipTransform);
+			if (HandSceneComponent)
+			{
+				FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, true); // KeepRelative - because we want to keep relative location from the hand to the clip
+				// HandSceneComponent will follow the position of Hand_L during any animations
+				HandSceneComponent->AttachToComponent(GetMesh(), AttachmentRules, FName("Hand_L"));
+				// The clip bone will follow the hand compnent, which is following the animation
+				HandSceneComponent->SetWorldTransform(ClipTransform);
+			}
 
 			EquippedWeapon->SetMovingClip(true);
 		}
