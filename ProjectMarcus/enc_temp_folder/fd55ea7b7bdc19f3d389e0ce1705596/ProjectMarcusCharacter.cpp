@@ -145,8 +145,6 @@ void AProjectMarcusCharacter::PickupItemAfterPreview(AItemBase* PickedupItem)
 	if (AWeaponItem* WeaponItem = Cast<AWeaponItem>(PickedupItem))
 	{
 		SwapWeapon(WeaponItem);
-		// Add however many bullets this weapon pickup has to our stash
-		AddAmmoToStash(WeaponItem->GetAmmoType(), WeaponItem->GetItemCount());
 	}
 	else
 	{
@@ -409,20 +407,6 @@ void AProjectMarcusCharacter::SwapWeapon(AWeaponItem* WeaponToSwap)
 	EquipWeapon(WeaponToSwap);
 }
 
-void AProjectMarcusCharacter::RemoveAmmoFromStash(EAmmoType AmmoType, int32 RemovedAmmo)
-{
-	ensure(AmmoStashMap.Contains(AmmoType));
-	int32 CurAmmoForType = AmmoStashMap[AmmoType];
-	AmmoStashMap[AmmoType] = FMath::Max(CurAmmoForType - RemovedAmmo, 0);
-}
-
-void AProjectMarcusCharacter::AddAmmoToStash(EAmmoType AmmoType, int32 AddedAmmo)
-{
-	ensure(AmmoStashMap.Contains(AmmoType));
-	int32 CurAmmoForType = AmmoStashMap[AmmoType];
-	AmmoStashMap[AmmoType] = FMath::Min(CurAmmoForType + AddedAmmo, 999);
-}
-
 void AProjectMarcusCharacter::FillAmmoStash()
 {
 	AmmoStashMap.Empty();
@@ -466,20 +450,22 @@ void AProjectMarcusCharacter::FinishReloading()
 		EAmmoType CurAmmoType = EquippedWeapon->GetAmmoType();
 		if (AmmoStashMap.Contains(CurAmmoType))
 		{
-			int32 AmmoPutIntoClip = 0;
+			int32 CarriedAmmo = AmmoStashMap[CurAmmoType];
 			int32 EmptySpaceInClip = EquippedWeapon->GetMaxAmmoCapacity() - EquippedWeapon->GetAmmoInClip();
 
-			if (EmptySpaceInClip > AmmoStashMap[CurAmmoType])
-			{// Can only fill clip with the few bullets we had in the stash
-				AmmoPutIntoClip = AmmoStashMap[CurAmmoType];
+			// Reload clip with everything left in stash
+			if (EmptySpaceInClip > CarriedAmmo)
+			{
+				EquippedWeapon->ReloadClip(CarriedAmmo); // actually puts the bullets into the clip
+				CarriedAmmo = 0;
 			}
 			else
 			{// Fill entire clip
-				AmmoPutIntoClip = EmptySpaceInClip;
+				EquippedWeapon->ReloadClip(EmptySpaceInClip); // actually puts the bullets into the clip
+				CarriedAmmo -= EmptySpaceInClip;
 			}
 
-			EquippedWeapon->ReloadClip(AmmoPutIntoClip);
-			RemoveAmmoFromStash(CurAmmoType, AmmoPutIntoClip);
+			AmmoStashMap.Add(CurAmmoType, CarriedAmmo); // actually updates our ammo stash for this type (since we just used some to reload)
 		}
 	}
 

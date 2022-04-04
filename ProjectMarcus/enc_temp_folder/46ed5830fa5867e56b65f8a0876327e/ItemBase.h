@@ -48,8 +48,6 @@ public:
 
 	class USkeletalMeshComponent* GetItemMesh() { return ItemMesh; }
 
-	int32 GetItemCount() { return ItemCount; }
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

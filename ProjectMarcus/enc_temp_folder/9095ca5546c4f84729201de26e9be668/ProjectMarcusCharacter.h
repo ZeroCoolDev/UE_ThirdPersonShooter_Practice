@@ -193,10 +193,6 @@ protected:
 	// Drops currently equipped weapon, and equips whatever weapon is currently being looked at
 	void SwapWeapon(AWeaponItem* WeaponToSwap);
 
-	void RemoveAmmoFromStash(EAmmoType AmmoType, int32 RemovedAmmo);
-
-	void AddAmmoToStash(EAmmoType AmmoType, int32 AddedAmmo);
-
 	void FillAmmoStash();
 
 	/* Reload Weapon */
