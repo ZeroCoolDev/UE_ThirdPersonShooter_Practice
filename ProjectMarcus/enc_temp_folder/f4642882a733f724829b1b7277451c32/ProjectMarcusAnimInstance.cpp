@@ -56,8 +56,6 @@ void UProjectMarcusAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		//	MovementDir.Y));
 		//}
 	}
-
-	CheckForTurnInPlace();
 }
 
 void UProjectMarcusAnimInstance::NativeInitializeAnimation()
@@ -65,33 +63,6 @@ void UProjectMarcusAnimInstance::NativeInitializeAnimation()
 	if (PMCharacter == nullptr)
 	{
 		FindOwner();
-	}
-}
-
-void UProjectMarcusAnimInstance::CheckForTurnInPlace()
-{
-	// for now don't allow turning in place while moving
-	if (FootSpeed > 0)
-	{
-		return;
-	}
-
-	if(PMCharacter)
-	{
-		LastFrameCharacterYaw = CharacterYaw;
-		CharacterYaw = PMCharacter->GetActorRotation().Yaw;
-		const float CharacterYawDelta = CharacterYaw - LastFrameCharacterYaw;
-		
-		YawDiffFromRootToCharacter -= CharacterYawDelta;
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(1, -1, FColor::Blue, FString::Printf(TEXT("CharacterYaw: %f"), CharacterYaw));
-			GEngine->AddOnScreenDebugMessage(2, -1, FColor::Red, FString::Printf(TEXT("YawDiffFromRootToCharacter: %f"), YawDiffFromRootToCharacter));
-			if (FMath::Abs(YawDiffFromRootToCharacter) >= TurnInPlaceYawThreshold)
-			{
-				YawDiffFromRootToCharacter = CharacterYawDelta;
-			}
-		}
 	}
 }
 
