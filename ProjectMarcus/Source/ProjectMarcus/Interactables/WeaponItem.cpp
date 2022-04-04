@@ -58,7 +58,13 @@ void AWeaponItem::ThrowWeapon()
 
 void AWeaponItem::ConsumeAmmo(int32 Amt /*= 1*/)
 {
-	Ammo = FMath::Max(Ammo - Amt, 0);
+	CurrentAmmoInClip = FMath::Max(CurrentAmmoInClip - Amt, 0);
+}
+
+void AWeaponItem::ReloadClip(int32 IncommingAmmo)
+{
+	ensureMsgf(CurrentAmmoInClip + IncommingAmmo <= MaxClipCapacity, TEXT("Attempted to reload more than clip capacity"));
+	CurrentAmmoInClip += IncommingAmmo;
 }
 
 void AWeaponItem::StopFalling() // TODO: The pickup in the air is actually still reacting to our widget visibility checking (need to turn that off/remove it from the map immediately I think)

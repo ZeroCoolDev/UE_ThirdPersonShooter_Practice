@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "ProjectMarcus/AmmoType.h"
 #include "ProjectMarcusCharacter.generated.h"
 
 #ifndef LOCAL_USER_NUM
@@ -78,14 +79,6 @@ struct FCameraData
 	float		ItemPickupDistanceUp = 65.f;				// Distance upwards from the camera where the item previews on pickup
 };
 
-UENUM(BlueprintType)
-enum class EAmmoType : uint8
-{
-	EAT_9mm UMETA(DisplayName = "9mm"),
-	EAT_AR UMETA(DisplayName = "Assault Rifle"),
-	EAT_Max UMETA(DisplayName = "InvalidMax")
-};
-
 UENUM(BlueprintType) 
 enum class ECombatState : uint8
 {
@@ -117,6 +110,9 @@ public:
 	FVector GetCameraInterpLocation();
 
 	void PickupItemAfterPreview(AItemBase* PickedupItem);
+
+	UFUNCTION(BlueprintCallable)
+	int32 GetAmmoStashForType(EAmmoType AmmoType);
 
 protected:
 	// Called when the game starts or when spawned
@@ -197,9 +193,7 @@ protected:
 	// Drops currently equipped weapon, and equips whatever weapon is currently being looked at
 	void SwapWeapon(AWeaponItem* WeaponToSwap);
 
-	void FillAmmoMap();
-
-	bool WeaponHasAmmo();
+	void FillAmmoStash();
 
 	/* Reload Weapon */
 	void ReloadWeapon();
@@ -231,6 +225,12 @@ private:
 	bool TraceFromCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation);
 
 	bool GetCrosshairWorldPosition(FVector& OutWorldPos, FVector& OutWorldDir);
+
+	// Checks if the weapon's clip has ammo
+	bool WeaponClipHasAmmo();
+
+	// Checks if we have the weapon types ammo
+	bool CarryingAmmoTypeForCurrentWeapon();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	FMoveData MoveData;
@@ -305,7 +305,7 @@ private:
 
 	// TODO: Use a fixed length array instead
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	TMap<EAmmoType, int32> AmmoMap;
+	TMap<EAmmoType, int32> AmmoStashMap;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	int32 Starting9mmAmmo = 85;

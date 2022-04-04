@@ -4,7 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "ProjectMarcus/Interactables/ItemBase.h"
+#include "ProjectMarcus/AmmoType.h"
 #include "WeaponItem.generated.h"
+
+UENUM(BlueprintType)
+enum class EWeaponType : uint8
+{
+	EWT_SubmachineGun UMETA(Display = "SubmachineGun"),
+	EWT_AssaultRifle UMETA(Display = "AssaultRifle"),
+	EWT_Max UMETA(Display = "InvalidMax")
+};
 
 /**
  * 
@@ -26,13 +35,37 @@ public:
 
 	void ConsumeAmmo(int32 Amt = 1);
 
-	int32 GetAmmoCount() { return Ammo; }
+	void ReloadClip(int32 IncommingAmmo);
+
+	int32 GetMaxAmmoCapacity() { return MaxClipCapacity; }
+
+	int32 GetAmmoInClip() { return CurrentAmmoInClip; }
+
+	EWeaponType GetWeaponType() { return WeaponType; }
+
+	EAmmoType GetAmmoType() { return AmmoType; }
+
+	const FName GetReloadMontage() { return ReloadMontageSection; }
 
 protected:
 	void StopFalling();
 
-	UPROPERTY(EditAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	int32 Ammo = 0;
+	// Represents current ammo in the clip (0-AmmoClipCapacity)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 CurrentAmmoInClip = 0;
+
+	// Represents max ammo capacity for the clip for this ammo type
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 MaxClipCapacity = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EWeaponType WeaponType = EWeaponType::EWT_SubmachineGun;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EAmmoType AmmoType = EAmmoType::EAT_9mm;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FName ReloadMontageSection = FName(TEXT("ReloadSMG"));
 
 private:
 	FTimerHandle ThrowWeaponTimer;

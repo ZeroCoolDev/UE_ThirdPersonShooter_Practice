@@ -152,6 +152,15 @@ void AProjectMarcusCharacter::PickupItemAfterPreview(AItemBase* PickedupItem)
 	}
 }
 
+int32 AProjectMarcusCharacter::GetAmmoStashForType(EAmmoType AmmoType)
+{
+	if (AmmoStashMap.Contains(AmmoType))
+	{
+		return AmmoStashMap[AmmoType];
+	}
+	return -1;
+}
+
 // Called when the game starts or when spawned
 void AProjectMarcusCharacter::BeginPlay()
 {
@@ -170,6 +179,8 @@ void AProjectMarcusCharacter::BeginPlay()
 
 	CurrentMouseTurnRate = MoveData.MouseAimingTurnRate;
 	CurrentMouseLookUpRate = MoveData.MouseAimingLookUpRate;
+
+	FillAmmoStash();
 }
 
 void AProjectMarcusCharacter::MoveForward(float Value)
@@ -255,7 +266,7 @@ void AProjectMarcusCharacter::FireWeapon()
 		return;
 	}
 
-	if (WeaponHasAmmo())
+	if (WeaponClipHasAmmo())
 	{
 		PlayBulletFireSfx();
 		SendBulletWithVfx();
@@ -332,10 +343,12 @@ void AProjectMarcusCharacter::AutoFireReset()
 {
 	CombatState = ECombatState::ECS_Unoccupied;
 
-	if (WeaponHasAmmo())
+	if (WeaponClipHasAmmo())
 	{
+		UE_LOG(LogTemp, Warning, TEXT("AProjectMarcusCharacter::AutoFireRese, Clip Has Ammo"));
 		if (bFireButtonPressed)
 		{
+			UE_LOG(LogTemp, Warning, TEXT("AProjectMarcusCharacter::AutoFireRese, Firing"));
 			FireWeapon();
 		}
 	}
@@ -394,19 +407,10 @@ void AProjectMarcusCharacter::SwapWeapon(AWeaponItem* WeaponToSwap)
 	EquipWeapon(WeaponToSwap);
 }
 
-void AProjectMarcusCharacter::FillAmmoMap()
+void AProjectMarcusCharacter::FillAmmoStash()
 {
-	AmmoMap.Empty();
-	AmmoMap = { {EAmmoType::EAT_9mm, StartingARAmmo}, {EAmmoType::EAT_AR, StartingARAmmo} };
-}
-
-bool AProjectMarcusCharacter::WeaponHasAmmo()
-{
-	if (EquippedWeapon)
-	{
-		return EquippedWeapon->GetAmmoCount() > 0;
-	}
-	return false;
+	AmmoStashMap.Empty();
+	AmmoStashMap = { {EAmmoType::EAT_9mm, StartingARAmmo}, {EAmmoType::EAT_AR, StartingARAmmo} };
 }
 
 void AProjectMarcusCharacter::ReloadWeapon()
@@ -416,25 +420,23 @@ void AProjectMarcusCharacter::ReloadWeapon()
 		return;
 	}
 
-	CombatState = ECombatState::ECS_Reloading;
-
-	// Do we have ammo of the type EquippedWeapon needs?
-	// TODO: create HasAmmoOfType() or HasAmmofForEquippedWeapon()
-	if (true)
+	if (EquippedWeapon)
 	{
-		if (ReloadMontage)
-		{
-			USkeletalMeshComponent* MeshComp = GetMesh();
-			if (MeshComp)
-			{
-				UAnimInstance* AnimInst = MeshComp->GetAnimInstance();
-				if (AnimInst)
-				{
-					// TODO: create a concept of WeaponType so we know what reload animation to play
-					FName MontageSection(TEXT("ReloadSMG"));
+		CombatState = ECombatState::ECS_Reloading;
 
-					AnimInst->Montage_Play(ReloadMontage);
-					AnimInst->Montage_JumpToSection(MontageSection);
+		if (CarryingAmmoTypeForCurrentWeapon())
+		{
+			if (ReloadMontage)
+			{
+				USkeletalMeshComponent* MeshComp = GetMesh();
+				if (MeshComp)
+				{
+					UAnimInstance* AnimInst = MeshComp->GetAnimInstance();
+					if (AnimInst)
+					{
+						AnimInst->Montage_Play(ReloadMontage);
+						AnimInst->Montage_JumpToSection(EquippedWeapon->GetReloadMontage());
+					}
 				}
 			}
 		}
@@ -443,8 +445,32 @@ void AProjectMarcusCharacter::ReloadWeapon()
 
 void AProjectMarcusCharacter::FinishReloading()
 {
-	// TODO: Update ammo map
-	CombatState = ECombatState::ECS_Unoccupied;
+	if (EquippedWeapon)
+	{
+		EAmmoType CurAmmoType = EquippedWeapon->GetAmmoType();
+		if (AmmoStashMap.Contains(CurAmmoType))
+		{
+			int32 CarriedAmmo = AmmoStashMap[CurAmmoType];
+			int32 EmptySpaceInClip = EquippedWeapon->GetMaxAmmoCapacity() - EquippedWeapon->GetAmmoInClip();
+
+			// Reload clip with everything left in stash
+			if (EmptySpaceInClip > CarriedAmmo)
+			{
+				EquippedWeapon->ReloadClip(CarriedAmmo); // actually puts the bullets into the clip
+				CarriedAmmo = 0;
+			}
+			else
+			{// Fill entire clip
+				EquippedWeapon->ReloadClip(EmptySpaceInClip); // actually puts the bullets into the clip
+				CarriedAmmo -= EmptySpaceInClip;
+			}
+
+			AmmoStashMap.Add(CurAmmoType, CarriedAmmo); // actually updates our ammo stash for this type (since we just used some to reload)
+		}
+	}
+
+	// In case the user is still holding the fire button during reload
+	AutoFireReset();
 }
 
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)
@@ -674,8 +700,30 @@ bool AProjectMarcusCharacter::GetCrosshairWorldPosition(FVector& OutWorldPos, FV
 	return UGameplayStatics::DeprojectScreenToWorld(UGameplayStatics::GetPlayerController(this, LOCAL_USER_NUM), CrosshairLocationOnScreen, OutWorldPos, OutWorldDir);
 }
 
+bool AProjectMarcusCharacter::CarryingAmmoTypeForCurrentWeapon()
+{
+	if (EquippedWeapon)
+	{
+		EAmmoType CurAmmoType = EquippedWeapon->GetAmmoType();
+		if (AmmoStashMap.Contains(CurAmmoType))
+		{
+			return AmmoStashMap[CurAmmoType] > 0;
+		}
+	}
+	return false;
+}
+
 float AProjectMarcusCharacter::GetCrosshairSpreadMultiplier() const
 {
 	return CrosshairSpreadMultiplier;
+}
+
+bool AProjectMarcusCharacter::WeaponClipHasAmmo()
+{
+	if (EquippedWeapon)
+	{
+		return EquippedWeapon->GetAmmoInClip() > 0;
+	}
+	return false;
 }
 
