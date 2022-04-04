@@ -347,10 +347,8 @@ void AProjectMarcusCharacter::AutoFireReset()
 
 	if (WeaponClipHasAmmo())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AProjectMarcusCharacter::AutoFireRese, Clip Has Ammo"));
 		if (bFireButtonPressed)
 		{
-			UE_LOG(LogTemp, Warning, TEXT("AProjectMarcusCharacter::AutoFireRese, Firing"));
 			FireWeapon();
 		}
 	}
@@ -485,6 +483,34 @@ void AProjectMarcusCharacter::FinishReloading()
 
 	// In case the user is still holding the fire button during reload
 	AutoFireReset();
+}
+
+void AProjectMarcusCharacter::GrabClip()
+{
+	if (EquippedWeapon)
+	{
+		USkeletalMeshComponent* WeaponMesh = EquippedWeapon->GetItemMesh();
+		if (WeaponMesh)
+		{
+			int32 ClipBoneIndex = WeaponMesh->GetBoneIndex(EquippedWeapon->GetClipBoneName());
+			ClipTransform = WeaponMesh->GetBoneTransform(ClipBoneIndex);
+
+			FAttachmentTransformRules AttachmentRules(EAttachmentRule::KeepRelative, true); // KeepRelative - because we want to keep relative location from the hand to the clip
+			// attaching an empty (for now) scene component to our characters mesh, at the Hand_L slot
+			HandSceneComponent->AttachToComponent(GetMesh(), AttachmentRules, FName("Hand_L"));
+			HandSceneComponent->SetWorldTransform(ClipTransform);
+
+			EquippedWeapon->SetMovingClip(true);
+		}
+	}
+}
+
+void AProjectMarcusCharacter::ReleaseClip()
+{
+	if (EquippedWeapon)
+	{
+		EquippedWeapon->SetMovingClip(false);
+	}
 }
 
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)

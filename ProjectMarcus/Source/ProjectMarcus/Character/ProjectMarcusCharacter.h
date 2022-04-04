@@ -205,6 +205,12 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void FinishReloading();
 
+	UFUNCTION(BlueprintCallable)
+	void GrabClip();
+
+	UFUNCTION(BlueprintCallable)
+	void ReleaseClip();
+
 private:
 	// Smoothly change camera FOV based off if the player is zooming or not
 	void UpdateCameraZoom(float DeltaTime);
@@ -319,6 +325,14 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	ECombatState CombatState = ECombatState::ECS_Unoccupied;
+
+	// Transform of the clip when we grab it during reloading
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	FTransform ClipTransform;
+
+	// Scene compoonent we attach to the characters hand during reloading
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	USceneComponent* HandSceneComponent = nullptr;
 
 private:
 	/* fire related */

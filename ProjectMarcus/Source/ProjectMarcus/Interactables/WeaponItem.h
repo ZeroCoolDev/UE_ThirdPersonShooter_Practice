@@ -47,6 +47,10 @@ public:
 
 	const FName GetReloadMontage() { return ReloadMontageSection; }
 
+	const FName GetClipBoneName() { return ClipBoneName; }
+
+	void SetMovingClip(bool Moving) { bMovingClip = Moving; }
+
 protected:
 	void StopFalling();
 
@@ -67,10 +71,16 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	FName ReloadMontageSection = FName(TEXT("ReloadSMG"));
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	FName ClipBoneName = FName(TEXT("smg_clip"));
+
 private:
 	FTimerHandle ThrowWeaponTimer;
 	
 	float ThrowDuration = 0.7f;
 	
 	bool bFalling = false;
+
+	// True when moving the clip while reloading. TODO: Can I just use the combat state instead?
+	bool bMovingClip = false;
 };
