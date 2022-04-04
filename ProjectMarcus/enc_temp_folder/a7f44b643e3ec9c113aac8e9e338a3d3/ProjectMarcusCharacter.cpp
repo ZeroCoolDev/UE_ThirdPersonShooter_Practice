@@ -441,24 +441,20 @@ void AProjectMarcusCharacter::ReloadWeapon()
 
 	if (EquippedWeapon)
 	{
-		// Only allow reloading if we don't have a full clip
-		if (EquippedWeapon->GetAmmoInClip() < EquippedWeapon->GetMaxAmmoCapacity())
-		{
-			CombatState = ECombatState::ECS_Reloading;
+		CombatState = ECombatState::ECS_Reloading;
 
-			if (CarryingAmmoTypeForCurrentWeapon())
+		if (CarryingAmmoTypeForCurrentWeapon())
+		{
+			if (ReloadMontage)
 			{
-				if (ReloadMontage)
+				USkeletalMeshComponent* MeshComp = GetMesh();
+				if (MeshComp)
 				{
-					USkeletalMeshComponent* MeshComp = GetMesh();
-					if (MeshComp)
+					UAnimInstance* AnimInst = MeshComp->GetAnimInstance();
+					if (AnimInst)
 					{
-						UAnimInstance* AnimInst = MeshComp->GetAnimInstance();
-						if (AnimInst)
-						{
-							AnimInst->Montage_Play(ReloadMontage);
-							AnimInst->Montage_JumpToSection(EquippedWeapon->GetReloadMontage());
-						}
+						AnimInst->Montage_Play(ReloadMontage);
+						AnimInst->Montage_JumpToSection(EquippedWeapon->GetReloadMontage());
 					}
 				}
 			}
