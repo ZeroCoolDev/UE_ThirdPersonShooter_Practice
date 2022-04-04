@@ -92,8 +92,12 @@ void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::AimButtonPressed);
 		PlayerInputComponent->BindAction("AimButton", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::AimButtonReleased);
 
+		// Selection
 		PlayerInputComponent->BindAction("Select", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::SelectButtonPressed);
 		PlayerInputComponent->BindAction("Select", EInputEvent::IE_Released, this, &AProjectMarcusCharacter::SelectButtonReleased);
+		
+		// Reload
+		PlayerInputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::ReloadButtonPressed);
 	}
 }
 
@@ -131,7 +135,7 @@ FVector AProjectMarcusCharacter::GetCameraInterpLocation()
 		// desired = camLoc + forward * A + up * B
 		ItemPreviewLoc = CameraWorldPos + 
 						 CamForwardDir * CameraData.ItemPickupDistranceOut + 
-						 FVector(0.f, 0.f, CameraData.ItemPickupDistanceUp); // TODO: make this use the cameras UP vector, not world up.
+						 FVector(0.f, 0.f, CameraData.ItemPickupDistanceUp);
 	}
 	return ItemPreviewLoc;
 }
@@ -234,6 +238,11 @@ void AProjectMarcusCharacter::SelectButtonReleased()
 
 }
 
+void AProjectMarcusCharacter::ReloadButtonPressed()
+{
+	ReloadWeapon();
+}
+
 void AProjectMarcusCharacter::FireWeapon()
 {
 	if (EquippedWeapon == nullptr)
@@ -332,7 +341,7 @@ void AProjectMarcusCharacter::AutoFireReset()
 	}
 	else
 	{
-		// Reload
+		ReloadWeapon();
 	}
 }
 
@@ -398,6 +407,44 @@ bool AProjectMarcusCharacter::WeaponHasAmmo()
 		return EquippedWeapon->GetAmmoCount() > 0;
 	}
 	return false;
+}
+
+void AProjectMarcusCharacter::ReloadWeapon()
+{
+	if (CombatState != ECombatState::ECS_Unoccupied)
+	{
+		return;
+	}
+
+	CombatState = ECombatState::ECS_Reloading;
+
+	// Do we have ammo of the type EquippedWeapon needs?
+	// TODO: create HasAmmoOfType() or HasAmmofForEquippedWeapon()
+	if (true)
+	{
+		if (ReloadMontage)
+		{
+			USkeletalMeshComponent* MeshComp = GetMesh();
+			if (MeshComp)
+			{
+				UAnimInstance* AnimInst = MeshComp->GetAnimInstance();
+				if (AnimInst)
+				{
+					// TODO: create a concept of WeaponType so we know what reload animation to play
+					FName MontageSection(TEXT("ReloadSMG"));
+
+					AnimInst->Montage_Play(ReloadMontage);
+					AnimInst->Montage_JumpToSection(MontageSection);
+				}
+			}
+		}
+	}
+}
+
+void AProjectMarcusCharacter::FinishReloading()
+{
+	// TODO: Update ammo map
+	CombatState = ECombatState::ECS_Unoccupied;
 }
 
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)

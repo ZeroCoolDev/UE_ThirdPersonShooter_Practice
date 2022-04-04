@@ -156,7 +156,10 @@ protected:
 	void LookUpRate_Mouse(float Rate);
 
 	void SelectButtonPressed();
+
 	void SelectButtonReleased();
+
+	void ReloadButtonPressed();
 
 	/* Camera Zoom / Sensitivity */
 
@@ -198,6 +201,12 @@ protected:
 
 	bool WeaponHasAmmo();
 
+	/* Reload Weapon */
+	void ReloadWeapon();
+
+	UFUNCTION(BlueprintCallable)
+	void FinishReloading();
+
 private:
 	// Smoothly change camera FOV based off if the player is zooming or not
 	void UpdateCameraZoom(float DeltaTime);
@@ -213,7 +222,6 @@ private:
 	void ApplyWeaponKickback();
 
 	void StartFireTimer();
-	void ClearFireTimer();
 
 	// After firing a bullet get it's final impact point (either hits something or goes off infinitively far)
 	// returns false only if there was an error during calculation
@@ -249,6 +257,9 @@ private:
 	// Weapon fire montage
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	class UAnimMontage* HipFireMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* ReloadMontage;
 
 	// Particles spawned at bullet impact point
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))

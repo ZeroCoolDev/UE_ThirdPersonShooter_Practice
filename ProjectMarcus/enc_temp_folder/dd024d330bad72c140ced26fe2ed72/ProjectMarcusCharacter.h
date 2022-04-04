@@ -86,6 +86,15 @@ enum class EAmmoType : uint8
 	EAT_Max UMETA(DisplayName = "InvalidMax")
 };
 
+UENUM(BlueprintType) 
+enum class ECombatState : uint8
+{
+	ECS_Unoccupied UMETA(DisplayName = "Unoccupied"),
+	ECS_FireTimerInProgress UMETA(DisplayName = "FiringInProgress"),
+	ECS_Reloading UMETA(DisplayName = "Reloading"),
+	ECS_Max UMETA(DisplayName = "InvalidMax")
+};
+
 UCLASS()
 class PROJECTMARCUS_API AProjectMarcusCharacter : public ACharacter
 {
@@ -197,6 +206,15 @@ private:
 
 	void CheckForItemsInRange();
 
+	void PlayBulletFireSfx();
+
+	void SendBulletWithVfx();
+
+	void ApplyWeaponKickback();
+
+	void StartFireTimer();
+	void ClearFireTimer();
+
 	// After firing a bullet get it's final impact point (either hits something or goes off infinitively far)
 	// returns false only if there was an error during calculation
 	bool GetBulletHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation);
@@ -283,6 +301,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	int32 StartingARAmmo = 120;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
+	ECombatState CombatState = ECombatState::ECS_Unoccupied;
 
 private:
 	/* fire related */
