@@ -73,6 +73,9 @@ protected:
 
 	void SetMeshVibility(bool bVisible);
 
+	void PlayPickupSound();
+	void PlayEquipSound();
+
 	// Item Mesh
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* ItemMesh = nullptr;
@@ -127,4 +130,12 @@ protected:
 	// I don't like this - why do we need a reference to our character. WE should just be given a target location and interp to there
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class AProjectMarcusCharacter* CachedCharInPickupRange = nullptr;
+		
+	// sound to play at pickup point
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class USoundCue* PickupSound = nullptr;
+
+	// sound to play after pickup (once it's equipped)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class USoundCue* EquipSound = nullptr; 
 };

@@ -2,6 +2,8 @@
 
 #include "ProjectMarcus/Interactables/ItemBase.h"
 #include "ProjectMarcus/Character/ProjectMarcusCharacter.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
 #include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"
@@ -48,6 +50,9 @@ void AItemBase::UpdateToState(EItemState State)
 	}
 	case EItemState::EIS_PickUp:
 	{
+		// Pickup SFX
+		PlayPickupSound();
+
 		// Mesh
 		SetMeshVibility(true);
 		DisableMeshPhysycs();
@@ -68,6 +73,9 @@ void AItemBase::UpdateToState(EItemState State)
 	}
 	case EItemState::EIS_Equipped:
 	{
+		// Equip SFX
+		PlayEquipSound();
+
 		// Mesh
 		SetMeshVibility(true);
 		DisableMeshPhysycs();
@@ -321,5 +329,21 @@ void AItemBase::DisableMeshPhysycs()
 void AItemBase::SetMeshVibility(bool bVisible)
 {
 	ItemMesh->SetVisibility(bVisible);
+}
+
+void AItemBase::PlayPickupSound()
+{
+	if (PickupSound)
+	{
+		UGameplayStatics::PlaySound2D(this, PickupSound);
+	}
+}
+
+void AItemBase::PlayEquipSound()
+{
+	if (EquipSound)
+	{
+		UGameplayStatics::PlaySound2D(this, EquipSound);
+	}
 }
 
