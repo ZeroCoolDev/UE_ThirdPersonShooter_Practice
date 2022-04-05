@@ -20,7 +20,7 @@ public:
 
 protected:
 	// Handles updating turning in place
-	void CheckForTurnInPlace();
+	void CheckForTurnInPlace(float DeltaTime);
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
@@ -54,9 +54,12 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in Place", meta = (AllowPrivateAccess = "true"))
 	float YawDiffFromRootToCharacter = 0.f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in Place", meta = (AllowPrivateAccess = "true"))
 	float TurnInPlaceYawThreshold = 90.f;
 
 	float CharacterYaw = 0.f;
+	float CharacterYawLastFrame = 0.f;
 
-	float LastFrameCharacterYaw = 0.f;
+	float RotationCurve = 0.f;
+	float RotationCurveLastFrame = 0.f;
 };

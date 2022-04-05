@@ -57,7 +57,7 @@ void UProjectMarcusAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		//}
 	}
 
-	CheckForTurnInPlace();
+	CheckForTurnInPlace(DeltaTime);
 }
 
 void UProjectMarcusAnimInstance::NativeInitializeAnimation()
@@ -68,28 +68,73 @@ void UProjectMarcusAnimInstance::NativeInitializeAnimation()
 	}
 }
 
-void UProjectMarcusAnimInstance::CheckForTurnInPlace()
+void UProjectMarcusAnimInstance::CheckForTurnInPlace(float DeltaTime)
 {
 	// for now don't allow turning in place while moving
 	if (FootSpeed > 0)
 	{
+		YawDiffFromRootToCharacter = 0;
+		CharacterYaw = PMCharacter->GetActorRotation().Yaw;
+		CharacterYawLastFrame = CharacterYaw;
+		RotationCurveLastFrame = 0.f;
+		RotationCurve = 0.f;
 		return;
 	}
 
 	if(PMCharacter)
 	{
-		LastFrameCharacterYaw = CharacterYaw;
+		CharacterYawLastFrame = CharacterYaw;
 		CharacterYaw = PMCharacter->GetActorRotation().Yaw;
-		const float CharacterYawDelta = CharacterYaw - LastFrameCharacterYaw;
+		const float CharacterYawDelta = CharacterYaw - CharacterYawLastFrame;
 		
-		YawDiffFromRootToCharacter -= CharacterYawDelta;
+		// Clamped to [-180, 180]
+		YawDiffFromRootToCharacter = UKismetMathLibrary::NormalizeAxis(YawDiffFromRootToCharacter - CharacterYawDelta);
+
 		if (GEngine)
 		{
-			GEngine->AddOnScreenDebugMessage(1, -1, FColor::Blue, FString::Printf(TEXT("CharacterYaw: %f"), CharacterYaw));
-			GEngine->AddOnScreenDebugMessage(2, -1, FColor::Red, FString::Printf(TEXT("YawDiffFromRootToCharacter: %f"), YawDiffFromRootToCharacter));
-			if (FMath::Abs(YawDiffFromRootToCharacter) >= TurnInPlaceYawThreshold)
+			GEngine->AddOnScreenDebugMessage(0, -1, FColor::White, FString::Printf(TEXT("CharacterYaw: %f"), CharacterYaw));
+			GEngine->AddOnScreenDebugMessage(2, -1, FColor::Blue, FString::Printf(TEXT("YawDiffFromRootToCharacter: %f"), YawDiffFromRootToCharacter));
+		}		
+		// This will only be true if the animation playing has the Turning metadata 
+		float turning = GetCurveValue(TEXT("Turning"));
+		if (turning > 0.f)
+		{
+			GEngine->AddOnScreenDebugMessage(1, -1, FColor::Green, FString::Printf(TEXT("Character Turning! %f"), turning));
+
+			// When the animation starts its first frame RotationCurve won't have a value, so setting  RotationCurveLastFrame = RotationCurve then subtracting them would essentially be 0-90
+			// What we actually want is the delta between frames during the curve (which is a very small number like 89.5-90
+			if (RotationCurveLastFrame == 0.f)
 			{
-				YawDiffFromRootToCharacter = CharacterYawDelta;
+				RotationCurve = GetCurveValue(TEXT("RotationV2"));
+				RotationCurveLastFrame = RotationCurve;
+				return;
+			}
+			else
+			{
+				RotationCurveLastFrame = RotationCurve;
+				RotationCurve = GetCurveValue(TEXT("RotationV2"));
+			}
+
+			//GEngine->AddOnScreenDebugMessage(0, -1, FColor::Red, FString::Printf(TEXT("RotationCurve: %f"), RotationCurve));
+			const float RotationCurveDelta = FMath::Abs(RotationCurveLastFrame - RotationCurve);
+
+			// if YawDiffFromRootToCharacter is pos = turning left. is neg = turning right
+			if (YawDiffFromRootToCharacter < 0.f) // turning right, we need to add (which decreases the amount we are compensating for turning) meaning we will start to turn the root to the direction we need
+			{
+				YawDiffFromRootToCharacter += RotationCurveDelta;
+				GEngine->AddOnScreenDebugMessage(3, -1, FColor::Red, FString::Printf(TEXT("Updating YawDiffFromRootToCharacter += [RotationCurveDelta = RotationCurve - RotationCurveLastFrame](%f = %f - %f)"), RotationCurveDelta, RotationCurve, RotationCurveLastFrame));
+			}
+			else
+			{
+				YawDiffFromRootToCharacter -= RotationCurveDelta; 
+				GEngine->AddOnScreenDebugMessage(3, -1, FColor::Blue, FString::Printf(TEXT("Updating YawDiffFromRootToCharacter -= [RotationCurveDelta = RotationCurve - RotationCurveLastFrame](%f = %f - %f)"), RotationCurveDelta, RotationCurve, RotationCurveLastFrame));
+			}
+
+			const float AbsYawDiff = FMath::Abs(YawDiffFromRootToCharacter);
+			if (AbsYawDiff > 90.f)
+			{
+				const float YawExcess = AbsYawDiff - 90.f;
+				YawDiffFromRootToCharacter > 0 ? YawDiffFromRootToCharacter -= YawExcess : YawDiffFromRootToCharacter += YawExcess;
 			}
 		}
 	}
