@@ -105,6 +105,7 @@ void UProjectMarcusAnimInstance::CheckForTurnInPlace(float DeltaTime)
 			GEngine->AddOnScreenDebugMessage(2, -1, FColor::Blue, FString::Printf(TEXT("YawDiffFromRootToCharacter: %f"), YawDiffFromRootToCharacter));
 		}		
 		// This will only be true if the animation playing has the Turning metadata 
+		// TODO: Figure out why I get stuck in the right turn in place animation
 		float turning = GetCurveValue(TEXT("Turning"));
 		if (turning > 0.f)
 		{
@@ -116,7 +117,6 @@ void UProjectMarcusAnimInstance::CheckForTurnInPlace(float DeltaTime)
 			{
 				RotationCurve = GetCurveValue(TEXT("RotationV2"));
 				RotationCurveLastFrame = RotationCurve;
-				return;
 			}
 			else
 			{
@@ -124,7 +124,6 @@ void UProjectMarcusAnimInstance::CheckForTurnInPlace(float DeltaTime)
 				RotationCurve = GetCurveValue(TEXT("RotationV2"));
 			}
 
-			//GEngine->AddOnScreenDebugMessage(0, -1, FColor::Red, FString::Printf(TEXT("RotationCurve: %f"), RotationCurve));
 			const float RotationCurveDelta = FMath::Abs(RotationCurveLastFrame - RotationCurve);
 
 			// if YawDiffFromRootToCharacter is pos = turning left. is neg = turning right
@@ -139,12 +138,8 @@ void UProjectMarcusAnimInstance::CheckForTurnInPlace(float DeltaTime)
 				GEngine->AddOnScreenDebugMessage(3, -1, FColor::Blue, FString::Printf(TEXT("Updating YawDiffFromRootToCharacter -= [RotationCurveDelta = RotationCurve - RotationCurveLastFrame](%f = %f - %f)"), RotationCurveDelta, RotationCurve, RotationCurveLastFrame));
 			}
 
-			const float AbsYawDiff = FMath::Abs(YawDiffFromRootToCharacter);
-			if (AbsYawDiff > 90.f)
-			{
-				const float YawExcess = AbsYawDiff - 90.f;
-				YawDiffFromRootToCharacter > 0 ? YawDiffFromRootToCharacter -= YawExcess : YawDiffFromRootToCharacter += YawExcess;
-			}
+			// Always clamp between our two maxima
+			YawDiffFromRootToCharacter = FMath::Clamp(YawDiffFromRootToCharacter, -90.f, 90.f);
 		}
 	}
 }
