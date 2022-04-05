@@ -51,11 +51,20 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
 	bool bIsAiming = false;
 
+	// Horizontal rotation difference between where the character is facing and the root is facing.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in Place", meta = (AllowPrivateAccess = "true"))
 	float YawDiffFromRootToCharacter = 0.f;
 
+	// Threshold which needs to be passed before we actually turn in place
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in Place", meta = (AllowPrivateAccess = "true"))
 	float TurnInPlaceYawThreshold = 90.f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in Place", meta = (AllowPrivateAccess = "true"))
+	float CurrentPitch = 0.f;
+
+	// True when reloading, used to prevent hip aim offset while reloading
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in Place", meta = (AllowPrivateAccess = "true"))
+	bool bReloadingInProgress = false;
 
 	float CharacterYaw = 0.f;
 	float CharacterYawLastFrame = 0.f;

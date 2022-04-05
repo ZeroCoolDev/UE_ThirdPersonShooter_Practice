@@ -12,6 +12,9 @@ void UProjectMarcusAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 	if (PMCharacter)
 	{
+		// Check if we are reloading or not
+		bReloadingInProgress = PMCharacter->GetCombatState() == ECombatState::ECS_Reloading;
+
 		// Update FootSpeed based off the lateral speed of the character from velocity (disregard vertical movement)
 		FVector Velocity = PMCharacter->GetVelocity();
 		Velocity.Z = 0.f; // we only want the lateral component of velocity so that if the character is falling or moving in a vertical way it doesn't effect our speed
@@ -70,6 +73,12 @@ void UProjectMarcusAnimInstance::NativeInitializeAnimation()
 
 void UProjectMarcusAnimInstance::CheckForTurnInPlace(float DeltaTime)
 {
+	// store the pitch (getting a rotation corresponding to the controller which matches our crosshairs)
+	if (PMCharacter)
+	{
+		CurrentPitch = PMCharacter->GetBaseAimRotation().Pitch;
+	}
+
 	// for now don't allow turning in place while moving
 	if (FootSpeed > 0)
 	{

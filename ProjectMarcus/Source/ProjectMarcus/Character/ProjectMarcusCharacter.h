@@ -114,6 +114,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	int32 GetAmmoStashForType(EAmmoType AmmoType);
 
+	ECombatState GetCombatState() const { return CombatState; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

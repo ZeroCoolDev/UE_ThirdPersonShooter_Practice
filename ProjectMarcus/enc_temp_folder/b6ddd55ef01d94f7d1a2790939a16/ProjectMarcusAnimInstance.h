@@ -20,7 +20,7 @@ public:
 
 protected:
 	// Handles updating turning in place
-	void CheckForTurnInPlace();
+	void CheckForTurnInPlace(float DeltaTime);
 
 private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
