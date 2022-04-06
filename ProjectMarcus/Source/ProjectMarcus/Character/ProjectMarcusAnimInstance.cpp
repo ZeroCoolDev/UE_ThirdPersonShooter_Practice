@@ -12,9 +12,6 @@ void UProjectMarcusAnimInstance::UpdateAnimationProperties(float DeltaTime)
 
 	if (PMCharacter)
 	{
-		// Check if we are reloading or not
-		bReloadingInProgress = PMCharacter->GetCombatState() == ECombatState::ECS_Reloading;
-
 		// Update FootSpeed based off the lateral speed of the character from velocity (disregard vertical movement)
 		FVector Velocity = PMCharacter->GetVelocity();
 		Velocity.Z = 0.f; // we only want the lateral component of velocity so that if the character is falling or moving in a vertical way it doesn't effect our speed
@@ -41,6 +38,27 @@ void UProjectMarcusAnimInstance::UpdateAnimationProperties(float DeltaTime)
 		}
 
 		bIsAiming = PMCharacter->IsAiming();
+
+		// Check if we are reloading or not
+		bReloadingInProgress = PMCharacter->GetCombatState() == ECombatState::ECS_Reloading;
+
+		// Order matters here.
+		if (bReloadingInProgress)
+		{
+			AimOffsetState = EAimOffsetState::EAOS_Reloading;
+		}
+		else if(bIsInAir)
+		{
+			AimOffsetState = EAimOffsetState::EAOS_InAir;
+		}
+		else if (bIsAiming)
+		{
+			AimOffsetState = EAimOffsetState::EAOS_ADS;
+		}
+		else
+		{
+			AimOffsetState = EAimOffsetState::EAOS_Hip;
+		}
 		
 		// TODO: Swap this out for MovementOffset once you figure out how to indicate between left and right when DOT is 0...
 		//FVector PlayerLookDir = PMCharacter->GetActorForwardVector().GetSafeNormal();
@@ -80,7 +98,7 @@ void UProjectMarcusAnimInstance::CheckForTurnInPlace(float DeltaTime)
 	}
 
 	// for now don't allow turning in place while moving
-	if (FootSpeed > 0)
+	if (FootSpeed > 0 || bIsInAir)
 	{
 		YawDiffFromRootToCharacter = 0;
 		CharacterYaw = PMCharacter->GetActorRotation().Yaw;
@@ -98,19 +116,11 @@ void UProjectMarcusAnimInstance::CheckForTurnInPlace(float DeltaTime)
 		
 		// Clamped to [-180, 180]
 		YawDiffFromRootToCharacter = UKismetMathLibrary::NormalizeAxis(YawDiffFromRootToCharacter - CharacterYawDelta);
-
-		if (GEngine)
-		{
-			GEngine->AddOnScreenDebugMessage(0, -1, FColor::White, FString::Printf(TEXT("CharacterYaw: %f"), CharacterYaw));
-			GEngine->AddOnScreenDebugMessage(2, -1, FColor::Blue, FString::Printf(TEXT("YawDiffFromRootToCharacter: %f"), YawDiffFromRootToCharacter));
-		}		
+		
 		// This will only be true if the animation playing has the Turning metadata 
-		// TODO: Figure out why I get stuck in the right turn in place animation
 		float turning = GetCurveValue(TEXT("Turning"));
 		if (turning > 0.f)
 		{
-			GEngine->AddOnScreenDebugMessage(1, -1, FColor::Green, FString::Printf(TEXT("Character Turning! %f"), turning));
-
 			// When the animation starts its first frame RotationCurve won't have a value, so setting  RotationCurveLastFrame = RotationCurve then subtracting them would essentially be 0-90
 			// What we actually want is the delta between frames during the curve (which is a very small number like 89.5-90
 			if (RotationCurveLastFrame == 0.f)
@@ -130,12 +140,10 @@ void UProjectMarcusAnimInstance::CheckForTurnInPlace(float DeltaTime)
 			if (YawDiffFromRootToCharacter < 0.f) // turning right, we need to add (which decreases the amount we are compensating for turning) meaning we will start to turn the root to the direction we need
 			{
 				YawDiffFromRootToCharacter += RotationCurveDelta;
-				GEngine->AddOnScreenDebugMessage(3, -1, FColor::Red, FString::Printf(TEXT("Updating YawDiffFromRootToCharacter += [RotationCurveDelta = RotationCurve - RotationCurveLastFrame](%f = %f - %f)"), RotationCurveDelta, RotationCurve, RotationCurveLastFrame));
 			}
 			else
 			{
 				YawDiffFromRootToCharacter -= RotationCurveDelta; 
-				GEngine->AddOnScreenDebugMessage(3, -1, FColor::Blue, FString::Printf(TEXT("Updating YawDiffFromRootToCharacter -= [RotationCurveDelta = RotationCurve - RotationCurveLastFrame](%f = %f - %f)"), RotationCurveDelta, RotationCurve, RotationCurveLastFrame));
 			}
 
 			// Always clamp between our two maxima

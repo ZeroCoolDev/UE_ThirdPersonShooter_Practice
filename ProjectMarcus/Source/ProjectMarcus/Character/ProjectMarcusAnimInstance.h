@@ -4,6 +4,16 @@
 #include "Animation/AnimInstance.h"
 #include "ProjectMarcusAnimInstance.generated.h"
 
+UENUM(BlueprintType)
+enum class EAimOffsetState : uint8 
+{
+	EAOS_ADS UMETA(DisplayName = "Aim Down Sight"),
+	EAOS_Hip UMETA(DisplayName = "Hip Placement"),
+	EAOS_Reloading UMETA(DisplayName = "Reload"),
+	EAOS_InAir UMETA(DisplayName = "InAir"),
+	EAOS_Max UMETA(DisplayName = "InvalidMax")
+};
+
 /**
  * 
  */
@@ -65,6 +75,10 @@ private:
 	// True when reloading, used to prevent hip aim offset while reloading
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in Place", meta = (AllowPrivateAccess = "true"))
 	bool bReloadingInProgress = false;
+
+	// Used to determine which animation AimOffset to use (ADS or Hip or Reloading)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Turn in Place", meta = (AllowPrivateAccess = "true"))
+	EAimOffsetState AimOffsetState = EAimOffsetState::EAOS_Hip;
 
 	float CharacterYaw = 0.f;
 	float CharacterYawLastFrame = 0.f;
