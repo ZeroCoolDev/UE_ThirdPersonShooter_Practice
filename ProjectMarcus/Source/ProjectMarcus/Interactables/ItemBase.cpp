@@ -4,7 +4,6 @@
 #include "ProjectMarcus/Character/ProjectMarcusCharacter.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
-#include "Components/BoxComponent.h"
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"

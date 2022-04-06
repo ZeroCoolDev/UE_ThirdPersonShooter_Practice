@@ -42,7 +42,7 @@ public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
-	virtual void UpdateToState(EItemState State);
+	void UpdateToState(EItemState State);
 
 	void SetPickupWidgetVisibility(bool bVisible);
 
