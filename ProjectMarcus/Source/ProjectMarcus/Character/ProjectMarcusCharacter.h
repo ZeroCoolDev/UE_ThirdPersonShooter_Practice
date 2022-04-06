@@ -193,7 +193,9 @@ protected:
 	void DropWeapon();
 
 	// Drops currently equipped weapon, and equips whatever weapon is currently being looked at
-	void SwapWeapon(AWeaponItem* WeaponToSwap);
+	void SwapWeapon(class AWeaponItem* WeaponToSwap);
+
+	void PickupAmmo(class AAmmoItem* Ammo);
 
 	void RemoveAmmoFromStash(EAmmoType AmmoType, int32 RemovedAmmo);
 
@@ -320,10 +322,10 @@ private:
 	TMap<EAmmoType, int32> AmmoStashMap;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	int32 Starting9mmAmmo = 85;
+	int32 Starting9mmAmmo = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	int32 StartingARAmmo = 120;
+	int32 StartingARAmmo = 5;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
 	ECombatState CombatState = ECombatState::ECS_Unoccupied;

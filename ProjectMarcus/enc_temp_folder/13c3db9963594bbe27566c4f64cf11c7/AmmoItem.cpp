@@ -16,11 +16,13 @@ AAmmoItem::AAmmoItem()
 void AAmmoItem::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
 }
 
 void AAmmoItem::BeginPlay()
 {
 	Super::BeginPlay();
+
 }
 
 void AAmmoItem::UpdateToState(EItemState State)

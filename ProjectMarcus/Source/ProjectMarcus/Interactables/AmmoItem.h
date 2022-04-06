@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "ProjectMarcus/Interactables/ItemBase.h"
+#include "ProjectMarcus/AmmoType.h"
 #include "AmmoItem.generated.h"
 
 /**
@@ -19,6 +20,8 @@ public:
 
 	virtual void Tick(float DeltaTime) override;
 
+	EAmmoType GetAmmoType() { return AmmoType; }
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -28,4 +31,7 @@ private:
 	// Mesh for the ammo pickup
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ammo, meta = (AllowPrivateAccess = "true"))
 	class UStaticMeshComponent* AmmoMesh;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
+		EAmmoType AmmoType = EAmmoType::EAT_9mm;
 };
