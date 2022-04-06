@@ -33,8 +33,5 @@ private:
 	class UStaticMeshComponent* AmmoMesh;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
-	EAmmoType AmmoType = EAmmoType::EAT_9mm;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
-	class UTexture2D* IconTexture;
+		EAmmoType AmmoType = EAmmoType::EAT_9mm;
 };
