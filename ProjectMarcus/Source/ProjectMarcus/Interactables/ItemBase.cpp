@@ -49,6 +49,8 @@ void AItemBase::UpdateToState(EItemState State)
 	}
 	case EItemState::EIS_PickUp:
 	{
+		PickupLocationIdx = CachedCharInPickupRange->AddItemToPickupLocation();
+
 		// Pickup SFX
 		PlayPickupSound();
 
@@ -175,7 +177,9 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 				const float ZPositionCurveValue = ItemZPickupPreviewCurve->GetFloatValue(ElapsedTime);
 
 				// Determine base Z height for when Curve is at 1.0
-				const FVector CameraInterpLocation = CachedCharInPickupRange->GetCameraInterpLocation(); // Get location in front of the camera
+				FVector CameraInterpLocation;
+				GetPickupInterpLocation(CameraInterpLocation); //CachedCharInPickupRange->GetCameraInterpLocation(); // Get location in front of the camera
+
 				const FVector DistFromItemToCameraUp = FVector(0.f, 0.f, (CameraInterpLocation - ItemPickupPreviewStartLocation).Z); // Distance vertically between item's starting position and the camera
 				const float BaseZHeight = DistFromItemToCameraUp.Size(); // Get a scalar for the desired Z height
 
@@ -233,6 +237,28 @@ void AItemBase::CheckForItemPreviewInterp(float DeltaTime)
 	}
 }
 
+void AItemBase::GetPickupInterpLocation(FVector& OutInterpLocation)
+{
+	OutInterpLocation = FVector::ZeroVector;
+
+	if (CachedCharInPickupRange)
+	{
+		switch (ItemType)
+		{
+			case EItemType::EIT_Ammo:
+			{
+				CachedCharInPickupRange->GetPickupLocationLocation(PickupLocationIdx, OutInterpLocation);
+				break;
+			}
+			case EItemType::EIT_Weapon:
+			{
+				CachedCharInPickupRange->GetPickupLocationLocation(0, OutInterpLocation); // the 0th index is always our weapon index
+				break;
+			}
+		}
+	}
+}
+
 void AItemBase::StartPickupPreview()
 {
 	ItemPickupPreviewStartLocation = GetActorLocation();
@@ -267,6 +293,9 @@ void AItemBase::FinishPickupPreview()
 	SetActorScale3D(FVector(1.f));
 	if (CachedCharInPickupRange)
 	{
+		// Tell the character we're not longer interping to pickup location
+		CachedCharInPickupRange->RemoveItemFromPickupLocation(PickupLocationIdx);
+
 		// Once we pick it up we turn off overlaps, so the organic "OnEndOverlap" which removes this item from range will not fire. Need to fire it manually on pickup
 		CachedCharInPickupRange->PickupItemAfterPreview(this);
 	}

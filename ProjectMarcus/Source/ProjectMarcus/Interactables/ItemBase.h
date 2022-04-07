@@ -70,6 +70,8 @@ protected:
 	// handles item interpolation when in the EIS_PreviewInterping state
 	void CheckForItemPreviewInterp(float DeltaTime);
 
+	void GetPickupInterpLocation(FVector& OutInterpLocation);
+
 	void StartPickupPreview();
 	void FinishPickupPreview();
 
@@ -149,4 +151,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	EItemType ItemType = EItemType::EIT_Max;
+
+	// Index of the pickup location this item should interp to
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 PickupLocationIdx = 0;
 };

@@ -153,22 +153,23 @@ void AProjectMarcusCharacter::RemoveItemInRange(AItemBase* ItemOutOfRange)
 	}
 }
 
-FVector AProjectMarcusCharacter::GetCameraInterpLocation()
-{
-	// Defaulting to 0 so if something is wrong we're very aware
-	FVector ItemPreviewLoc = FVector::ZeroVector;
-
-	if (GetFollowCamera())
-	{
-		const FVector CameraWorldPos = GetFollowCamera()->GetComponentLocation();
-		const FVector CamForwardDir = GetFollowCamera()->GetForwardVector();
-		// desired = camLoc + forward * A + up * B
-		ItemPreviewLoc = CameraWorldPos + 
-						 CamForwardDir * CameraData.ItemPickupDistranceOut + 
-						 FVector(0.f, 0.f, CameraData.ItemPickupDistanceUp);
-	}
-	return ItemPreviewLoc;
-}
+// Deprecated - TODO: remove
+//FVector AProjectMarcusCharacter::GetCameraInterpLocation()
+//{
+//	// Defaulting to 0 so if something is wrong we're very aware
+//	FVector ItemPreviewLoc = FVector::ZeroVector;
+//
+//	if (GetFollowCamera())
+//	{
+//		const FVector CameraWorldPos = GetFollowCamera()->GetComponentLocation();
+//		const FVector CamForwardDir = GetFollowCamera()->GetForwardVector();
+//		// desired = camLoc + forward * A + up * B
+//		ItemPreviewLoc = CameraWorldPos + 
+//						 CamForwardDir * CameraData.ItemPickupDistranceOut + 
+//						 FVector(0.f, 0.f, CameraData.ItemPickupDistanceUp);
+//	}
+//	return ItemPreviewLoc;
+//}
 
 void AProjectMarcusCharacter::PickupItemAfterPreview(AItemBase* PickedupItem)
 {
@@ -190,6 +191,35 @@ int32 AProjectMarcusCharacter::GetAmmoStashForType(EAmmoType AmmoType)
 		return AmmoStashMap[AmmoType];
 	}
 	return -1;
+}
+
+void AProjectMarcusCharacter::GetPickupLocationLocation(int32 LocationIndex, FVector& OutPickupLocation)
+{
+	OutPickupLocation = FVector::ZeroVector;
+
+	if (LocationIndex < PickupLocations.Num())
+	{
+		USceneComponent* PickupLoc = PickupLocations[LocationIndex].PickupLoc;
+		if(PickupLoc)
+		{
+			OutPickupLocation = PickupLoc->GetComponentLocation();
+		}
+	}
+}
+
+int32 AProjectMarcusCharacter::AddItemToPickupLocation()
+{
+	int32 LeastFilledLoc = GetLeastFilledPickupLocation();
+	PickupLocations[LeastFilledLoc].AddItem();
+	return LeastFilledLoc;
+}
+
+void AProjectMarcusCharacter::RemoveItemFromPickupLocation(int32 LocationIndex)
+{
+	if (LocationIndex < PickupLocations.Num())
+	{
+		PickupLocations[LocationIndex].RemoveItem();
+	}
 }
 
 // Called when the game starts or when spawned
@@ -831,6 +861,21 @@ bool AProjectMarcusCharacter::CarryingAmmoTypeForCurrentWeapon()
 		}
 	}
 	return false;
+}
+
+int32 AProjectMarcusCharacter::GetLeastFilledPickupLocation()
+{
+	int32 MinNum = INT_MAX;
+	int32 IdxWithLeast = 1;
+	for (uint8 i = 1, End = PickupLocations.Num(); i < End; ++i)
+	{
+		if (PickupLocations[i].NumItemsInterping < MinNum)
+		{
+			MinNum = PickupLocations[i].NumItemsInterping;
+			IdxWithLeast = i;
+		}
+	}
+	return IdxWithLeast;
 }
 
 float AProjectMarcusCharacter::GetCrosshairSpreadMultiplier() const
