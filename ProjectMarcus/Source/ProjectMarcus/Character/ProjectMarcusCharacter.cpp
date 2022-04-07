@@ -135,6 +135,8 @@ void AProjectMarcusCharacter::AddItemInRange(AItemBase* ItemInRange)
 {
 	if (ItemInRange)
 	{
+		// It should never be the case that an item we just came into range with is already in the map
+		ensure(ItemsInRange.Find(ItemInRange->GetUniqueID()) == nullptr);
 		ItemsInRange.FindOrAdd(ItemInRange->GetUniqueID(), MakeWeakObjectPtr<AItemBase>(ItemInRange));
 	}
 }

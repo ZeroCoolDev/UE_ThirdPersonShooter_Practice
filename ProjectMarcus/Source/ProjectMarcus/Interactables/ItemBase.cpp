@@ -132,6 +132,8 @@ void AItemBase::BeginPlay()
 	UpdateToState(EItemState::EIS_PickupWaiting);
 }
 
+// TODO: Technically if the character spawns within the overlap region this "on begin" doesn't trigger since they didn't _enter_ the overlap.
+// Might want to check something like once a second if something is inside us. Maybe not. Something to consider. Maybe this is only possible in the editor
 void AItemBase::OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	// tell the actor that just started overlapping that we are within range
@@ -298,6 +300,11 @@ void AItemBase::FinishPickupPreview()
 
 		// Once we pick it up we turn off overlaps, so the organic "OnEndOverlap" which removes this item from range will not fire. Need to fire it manually on pickup
 		CachedCharInPickupRange->PickupItemAfterPreview(this);
+	}
+
+	if (ItemType == EItemType::EIT_Ammo)
+	{
+		PlayEquipSound();
 	}
 }
 

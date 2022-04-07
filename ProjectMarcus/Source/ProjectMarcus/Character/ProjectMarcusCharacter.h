@@ -286,10 +286,6 @@ private:
 	// Checks if we have the weapon types ammo
 	bool CarryingAmmoTypeForCurrentWeapon();
 
-	void DecrementPickupLocation(int32 LocationIdx);
-
-	void IncrementPickupLocation(int32 LocationIdx);
-
 	int32 GetLeastFilledPickupLocation();
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = Movement, meta = (AllowPrivateAccess = "true"))
