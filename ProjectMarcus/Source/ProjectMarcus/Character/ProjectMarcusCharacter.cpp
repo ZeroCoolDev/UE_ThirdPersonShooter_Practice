@@ -631,6 +631,18 @@ void AProjectMarcusCharacter::CheckForItemsInRange()
 					}
 					Item->SetPickupWidgetVisibility(false);
 				}
+
+				// If this is ammo try to auto pick it up
+				if (AAmmoItem* AmmoItem = Cast<AAmmoItem>(Item))
+				{
+					FVector DirFromPlayerToItem = AmmoItem->GetActorLocation() - GetActorLocation();
+					float DistanceToItem = DirFromPlayerToItem.Size();
+
+					DrawDebugLine(GetWorld(), GetActorLocation(), AmmoItem->GetActorLocation(), FColor::Green);
+					GEngine->AddOnScreenDebugMessage(1, -1, FColor::Green, FString::Printf(TEXT("DistanceToItem: %f"), DistanceToItem));
+
+					AmmoItem->TryAutoPickup(DistanceToItem);
+				}
 			}
 		}
 	}

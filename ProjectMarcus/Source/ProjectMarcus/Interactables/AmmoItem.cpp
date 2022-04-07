@@ -18,6 +18,14 @@ void AAmmoItem::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 }
 
+void AAmmoItem::TryAutoPickup(float Distance)
+{
+	if (Distance <= AutoPickupDistance && ItemState == EItemState::EIS_PickupWaiting)
+	{
+		UpdateToState(EItemState::EIS_PickUp);
+	}
+}
+
 void AAmmoItem::BeginPlay()
 {
 	Super::BeginPlay();

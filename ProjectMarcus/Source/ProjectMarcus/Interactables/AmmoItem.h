@@ -22,6 +22,10 @@ public:
 
 	EAmmoType GetAmmoType() { return AmmoType; }
 
+	// Attempts to auto pickup based off current item state.
+	// Will only pickup item if in the correct state to protect against multiple calls to pickup the same item
+	void TryAutoPickup(float Distance);
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -37,4 +41,7 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Ammo, meta = (AllowPrivateAccess = "true"))
 	class UTexture2D* IconTexture;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float AutoPickupDistance = 100.f;
 };
