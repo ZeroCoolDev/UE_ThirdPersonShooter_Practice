@@ -88,6 +88,23 @@ enum class ECombatState : uint8
 	ECS_Max UMETA(DisplayName = "InvalidMax")
 };
 
+USTRUCT(BlueprintType)
+struct FPickupInterpLocationData
+{
+	GENERATED_BODY()
+
+	FPickupInterpLocationData() : FPickupInterpLocationData(nullptr, 0){}
+	FPickupInterpLocationData(class USceneComponent* InPickupLoc, int32 InNum) :
+	PickupLoc(InPickupLoc),
+	NumItemsInterping(InNum){}
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	class USceneComponent* PickupLoc;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	int32 NumItemsInterping;
+};
+
 UCLASS()
 class PROJECTMARCUS_API AProjectMarcusCharacter : public ACharacter
 {
@@ -336,7 +353,18 @@ private:
 
 	// Scene compoonent we attach to the characters hand during reloading
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat", meta = (AllowPrivateAccess = "true"))
-	USceneComponent* HandSceneComponent = nullptr;
+	class USceneComponent* HandSceneComponent = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Pickup Interp Points", meta = (AllowPrivateAccess = "true"))
+	class USceneComponent* WeaponInterpComp = nullptr;
+
+	// List of scene components for BP editing 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Pickup Interp Points", meta = (AllowPrivateAccess = "true"))
+	TArray<class USceneComponent*> PickupInterpLocations;
+
+	// List of actual pickup location data
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Pickup Interp Points", meta = (AllowPrivateAccess = "true"))
+	TArray<FPickupInterpLocationData> PickupLocations;
 
 private:
 	/* fire related */

@@ -53,10 +53,34 @@ AProjectMarcusCharacter::AProjectMarcusCharacter()
 		MoveComp->AirControl = MoveData.AirControl; // 0 = no control. 1 = full control at max speed
 	}
 
+	// Setup scene component for attaching weapon magazine
 	if(HandSceneComponent == nullptr)
 	{
 		HandSceneComponent = CreateDefaultSubobject<USceneComponent>(TEXT("HandSceneComponent"));
 	}
+
+	// Setup scene components for picking up items interpolation
+	if (WeaponInterpComp == nullptr)
+	{
+		WeaponInterpComp = CreateDefaultSubobject<USceneComponent>(TEXT("WeaponInterpComp"));
+		WeaponInterpComp->SetupAttachment(GetFollowCamera());
+		PickupLocations.Add(FPickupInterpLocationData(WeaponInterpComp, 0));
+	}
+
+	FString InterpCompNameBase = "PickupInterpLoc";
+	for (uint8 i = 0; i < 6; ++i)
+	{
+		// Create unique name since UE requires this
+		FName InterpCompName = FName(InterpCompNameBase + FString::FromInt(i));
+		
+		// Attach to camera
+		USceneComponent* PickupLoc = PickupInterpLocations.Add_GetRef(CreateDefaultSubobject<USceneComponent>(InterpCompName));
+		PickupLoc->SetupAttachment(GetFollowCamera());
+
+		// Store in the list of possible locations for in game use
+		PickupLocations.Add(FPickupInterpLocationData(PickupLoc, 0));
+	}
+
 }
 
 // Called every frame

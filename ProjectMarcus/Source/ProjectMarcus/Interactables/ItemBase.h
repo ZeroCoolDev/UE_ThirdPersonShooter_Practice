@@ -7,6 +7,14 @@
 #include "ItemBase.generated.h"
 
 UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	EIT_Weapon UMETA(DisplayName = "Weapon"),
+	EIT_Ammo UMETA(DisplayName = "Ammo"),
+	EIT_Max UMETA(DisplayName = "InvalidMAX"),
+};
+
+UENUM(BlueprintType)
 enum class EItemRarity : uint8
 {
 	EIR_Damaged UMETA(DisplayName = "Damaged"),
@@ -138,4 +146,7 @@ protected:
 	// sound to play after pickup (once it's equipped)
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class USoundCue* EquipSound = nullptr; 
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	EItemType ItemType = EItemType::EIT_Max;
 };
