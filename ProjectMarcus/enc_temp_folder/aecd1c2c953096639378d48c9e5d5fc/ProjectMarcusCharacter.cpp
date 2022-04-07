@@ -282,10 +282,6 @@ void AProjectMarcusCharacter::FireWeapon()
 		EquippedWeapon->ConsumeAmmo();
 		StartFireTimer();
 	}
-	else
-	{// If they tried firing but have nothing in the clip, reload for them
-		ReloadWeapon();
-	}
 }
 
 void AProjectMarcusCharacter::CalculateCrosshairSpread(float DeltaTime)
