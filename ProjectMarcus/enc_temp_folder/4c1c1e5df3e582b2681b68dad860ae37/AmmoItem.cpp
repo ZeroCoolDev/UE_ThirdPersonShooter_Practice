@@ -102,11 +102,3 @@ void AAmmoItem::UpdateToState(EItemState State)
 		break;
 	}
 }
-
-void AAmmoItem::SetCustomDepth(bool bEnabled)
-{
-	if (AmmoMesh)
-	{
-		AmmoMesh->SetRenderCustomDepth(bEnabled);
-	}
-}

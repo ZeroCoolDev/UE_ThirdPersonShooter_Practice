@@ -52,8 +52,7 @@ public:
 
 	virtual void UpdateToState(EItemState State);
 
-	// Toggles any pickup widgets, vfx, anything that should be turned on/off when the player is looking at the item and in range
-	void SetPickupItemVisuals(bool bIsVisible);
+	void SetPickupWidgetVisibility(bool bVisible);
 
 	class USkeletalMeshComponent* GetItemMesh() { return ItemMesh; }
 
@@ -62,12 +61,6 @@ public:
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
-
-	virtual void InitCustomDepth();
-	// allow/disallow custom depth for the mesh
-	virtual void SetCustomDepth(bool bEnabled);
-
-	void SetPickupWidgetVisibility(bool bVisible);
 
 	UFUNCTION()
 	void OnBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

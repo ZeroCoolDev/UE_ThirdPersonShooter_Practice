@@ -31,8 +31,6 @@ protected:
 
 	virtual void UpdateToState(EItemState State) override;
 
-	virtual void SetCustomDepth(bool bEnabled) override;
-
 private:
 	// Mesh for the ammo pickup
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Ammo, meta = (AllowPrivateAccess = "true"))

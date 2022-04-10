@@ -62,7 +62,7 @@ void AItemBase::UpdateToState(EItemState State)
 		DisableProximityTrigger();
 
 		// HUD
-		SetPickupItemVisuals(false);
+		SetPickupWidgetVisibility(false);
 
 		StartPickupPreview();
 		break;
@@ -85,7 +85,7 @@ void AItemBase::UpdateToState(EItemState State)
 		DisableProximityTrigger();
 
 		// HUD
-		SetPickupItemVisuals(false);
+		SetPickupWidgetVisibility(false);
 		break;
 	}
 	case EItemState::EIS_Drop:
@@ -108,7 +108,7 @@ void AItemBase::UpdateToState(EItemState State)
 		DisableProximityTrigger();
 
 		// HUD
-		SetPickupItemVisuals(false);
+		SetPickupWidgetVisibility(false);
 		break;
 	}
 	default:
@@ -116,10 +116,9 @@ void AItemBase::UpdateToState(EItemState State)
 	}
 }
 
-void AItemBase::SetPickupItemVisuals(bool bIsVisible)
+void AItemBase::SetPickupWidgetVisibility(bool bVisible)
 {
-	SetCustomDepth(bIsVisible);
-	SetPickupWidgetVisibility(bIsVisible);
+	PickupWidget->SetVisibility(bVisible);
 }
 
 // Called when the game starts or when spawned
@@ -128,30 +127,9 @@ void AItemBase::BeginPlay()
 	Super::BeginPlay();
 
 	// Hide by default
-	SetPickupItemVisuals(false);
+	SetPickupWidgetVisibility(false);
 
 	UpdateToState(EItemState::EIS_PickupWaiting);
-
-	// disable custom depth by default
-	InitCustomDepth();
-}
-
-void AItemBase::InitCustomDepth()
-{
-	SetCustomDepth(false);
-}
-
-void AItemBase::SetCustomDepth(bool bEnabled)
-{
-	if (ItemMesh)
-	{
-		ItemMesh->SetRenderCustomDepth(bEnabled);
-	}
-}
-
-void AItemBase::SetPickupWidgetVisibility(bool bVisible)
-{
-	PickupWidget->SetVisibility(bVisible);
 }
 
 // TODO: Technically if the character spawns within the overlap region this "on begin" doesn't trigger since they didn't _enter_ the overlap.
