@@ -66,8 +66,11 @@ protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	virtual void InitCustomDepth();
-	// allow/disallow custom depth for the mesh
+	
+	// [Outline + Color Tint] allow/disallow custom depth for the mesh 
 	virtual void SetCustomDepth(bool bEnabled);
+	
+	void SetGlowMaterial(bool bEnabled);
 
 	void SetPickupWidgetVisibility(bool bVisible);
 

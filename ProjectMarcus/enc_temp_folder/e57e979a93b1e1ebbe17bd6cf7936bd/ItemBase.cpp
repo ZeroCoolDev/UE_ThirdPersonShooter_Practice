@@ -310,14 +310,7 @@ void AItemBase::GetPickupInterpLocation(FVector& OutInterpLocation)
 				CachedCharInPickupRange->GetPickupLocationLocation(0, OutInterpLocation); // the 0th index is always our weapon index
 				break;
 			}
-			default:
-				UE_LOG(LogTemp, Error, TEXT("AItemBase::GetPickupInterpLocation, EItemType not set!"));
-			break;
 		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("CachedCharacter is invalid!"));
 	}
 }
 
