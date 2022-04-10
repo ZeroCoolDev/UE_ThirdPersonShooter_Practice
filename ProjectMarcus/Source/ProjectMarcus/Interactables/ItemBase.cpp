@@ -136,6 +136,24 @@ void AItemBase::BeginPlay()
 	InitCustomDepth();
 }
 
+void AItemBase::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+
+	if (BaseMaterialInstance)
+	{
+		DynamicMaterialInstance = UMaterialInstanceDynamic::Create(BaseMaterialInstance, this, TEXT("ItemDynamicMatInst"));
+		if (DynamicMaterialInstance)
+		{
+			ItemMesh->SetMaterial(MaterialIndex, DynamicMaterialInstance);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Error, TEXT("AItemBase::OnConstruction, Failed to create dynamic material instance!"));
+		}
+	}
+}
+
 void AItemBase::InitCustomDepth()
 {
 	SetCustomDepth(false);

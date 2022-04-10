@@ -63,6 +63,8 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void OnConstruction(const FTransform& Transform) override;
+
 	virtual void InitCustomDepth();
 	// allow/disallow custom depth for the mesh
 	virtual void SetCustomDepth(bool bEnabled);
@@ -162,4 +164,16 @@ protected:
 	// Index of the pickup location this item should interp to
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	int32 PickupLocationIdx = 0;
+
+	// Material instance that gets changed at runtime
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class UMaterialInstanceDynamic* DynamicMaterialInstance;
+	
+	// Material instance used within dynamic material instance
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class UMaterialInstance* BaseMaterialInstance;
+
+	// Index for the material we'd like to change at runtime
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	int32 MaterialIndex = 0;
 };
