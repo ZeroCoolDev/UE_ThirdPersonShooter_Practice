@@ -98,6 +98,10 @@ protected:
 	void PlayPickupSound();
 	void PlayEquipSound();
 
+	void UpdatePulseCurveValues();
+	void ResetPulseTimer();
+
+
 	// Item Mesh
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class USkeletalMeshComponent* ItemMesh = nullptr;
@@ -170,13 +174,35 @@ protected:
 
 	// Material instance that gets changed at runtime
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	class UMaterialInstanceDynamic* DynamicMaterialInstance;
+	class UMaterialInstanceDynamic* DynamicMaterialInstance = nullptr;
 	
 	// Material instance used within dynamic material instance
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
-	class UMaterialInstance* BaseMaterialInstance;
+	class UMaterialInstance* BaseMaterialInstance = nullptr;
 
 	// Index for the material we'd like to change at runtime
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	int32 MaterialIndex = 0;
+
+	// X component in curve
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float GlowMatAlpha = 150.f;
+
+	// Y component in curve
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float FresnelExponent = 3.f;
+
+	// Z component in curve
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float FresnelReflect = 4.f;
+
+	// Curve to drive the Dynamic Material parameters
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class UCurveVector* PulseCurve = nullptr;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	float PulseCurveDuration = 5.f;
+
+	FTimerHandle PulseTimer;
+
 };

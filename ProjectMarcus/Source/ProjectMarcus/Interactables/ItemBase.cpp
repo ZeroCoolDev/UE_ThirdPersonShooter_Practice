@@ -7,6 +7,7 @@
 #include "Components/WidgetComponent.h"
 #include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"
+#include "Curves/CurveVector.h"
 
 // Sets default values
 AItemBase::AItemBase()
@@ -28,7 +29,12 @@ AItemBase::AItemBase()
 void AItemBase::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
+	// Interp position for preview pickup
 	CheckForItemPreviewInterp(DeltaTime);
+	
+	// Get curve values from pulse curve and set dynamic material params
+	UpdatePulseCurveValues();
 }
 
 void AItemBase::UpdateToState(EItemState State)
@@ -45,6 +51,9 @@ void AItemBase::UpdateToState(EItemState State)
 		
 		// Pickup Trigger
 		EnableProximityTrigger();
+		
+		// Once we enter pickup waiting, kickoff the pulse timer
+		ResetPulseTimer();
 		break;
 	}
 	case EItemState::EIS_PickUp:
@@ -141,6 +150,11 @@ void AItemBase::BeginPlay()
 
 	// disable custom depth by default
 	InitCustomDepth();
+
+	if (ItemState == EItemState::EIS_PickupWaiting)
+	{
+
+	}
 }
 
 void AItemBase::OnConstruction(const FTransform& Transform)
@@ -444,6 +458,40 @@ void AItemBase::PlayEquipSound()
 	if (EquipSound)
 	{
 		UGameplayStatics::PlaySound2D(this, EquipSound);
+	}
+}
+
+void AItemBase::UpdatePulseCurveValues()
+{
+	if (ItemState == EItemState::EIS_PickupWaiting)
+	{
+		if (PulseCurve)
+		{
+			const float PulseCurveElapsedTime = GetWorldTimerManager().GetTimerElapsed(PulseTimer);
+			const FVector CurveVals = PulseCurve->GetVectorValue(PulseCurveElapsedTime);
+
+			const float GlowAmtThisFrame = CurveVals.X;
+			const float FresnelExpThisFrame = CurveVals.Y;
+			const float FresnelReflectThisFrame = CurveVals.Z;
+
+			if(DynamicMaterialInstance)
+			{
+				DynamicMaterialInstance->SetScalarParameterValue(TEXT("GlowAmount"), GlowAmtThisFrame * GlowMatAlpha);
+				DynamicMaterialInstance->SetScalarParameterValue(TEXT("FresnelExponent"), FresnelExpThisFrame * FresnelExponent);
+				DynamicMaterialInstance->SetScalarParameterValue(TEXT("FresnelReflectFraction"), FresnelReflectThisFrame * FresnelReflect);
+			}
+		}
+	}
+}
+
+void AItemBase::ResetPulseTimer()
+{
+	if (ItemState == EItemState::EIS_PickupWaiting)
+	{
+		if (GetWorld())
+		{
+			GetWorld()->GetTimerManager().SetTimer(PulseTimer, this, &AItemBase::ResetPulseTimer, PulseCurveDuration);
+		}
 	}
 }
 
