@@ -63,7 +63,8 @@ void AItemBase::UpdateToState(EItemState State)
 		DisableProximityTrigger();
 
 		// HUD
-		SetPickupItemVisuals(false);
+		// Only disable pickup widget, keep the glow/colour materials until we equip it
+		SetPickupWidgetVisibility(false);
 
 		StartPickupPreview();
 		break;
@@ -85,7 +86,8 @@ void AItemBase::UpdateToState(EItemState State)
 		// Pickup Trigger
 		DisableProximityTrigger();
 
-		// HUD
+		// HUD & VFX
+		// fully disable all visuals (pickup widget, glow and outline materials)
 		SetPickupItemVisuals(false);
 		break;
 	}
@@ -108,7 +110,7 @@ void AItemBase::UpdateToState(EItemState State)
 		// Pickup Trigger
 		DisableProximityTrigger();
 
-		// HUD
+		// HUD & VFX
 		SetPickupItemVisuals(false);
 		break;
 	}
@@ -119,8 +121,16 @@ void AItemBase::UpdateToState(EItemState State)
 
 void AItemBase::SetPickupItemVisuals(bool bIsVisible)
 {
-	SetCustomDepth(bIsVisible);
-	SetGlowMaterial(bIsVisible);
+	// We shouldn't modify any visuals if we're in preview flight
+	if (ItemState != EItemState::EIS_PreviewInterping)
+	{
+		SetCustomDepth(bIsVisible);
+		SetGlowMaterial(bIsVisible);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("not changing depth buffers because interping"));
+	}
 	SetPickupWidgetVisibility(bIsVisible);
 }
 
@@ -310,7 +320,14 @@ void AItemBase::GetPickupInterpLocation(FVector& OutInterpLocation)
 				CachedCharInPickupRange->GetPickupLocationLocation(0, OutInterpLocation); // the 0th index is always our weapon index
 				break;
 			}
+			default:
+				UE_LOG(LogTemp, Error, TEXT("AItemBase::GetPickupInterpLocation, EItemType not set!"));
+			break;
 		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("CachedCharacter is invalid!"));
 	}
 }
 

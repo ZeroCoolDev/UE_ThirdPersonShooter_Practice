@@ -63,7 +63,8 @@ void AItemBase::UpdateToState(EItemState State)
 		DisableProximityTrigger();
 
 		// HUD
-		SetPickupItemVisuals(false);
+		// Only disable pickup widget, keep the glow/colour materials until we equip it
+		SetPickupWidgetVisibility(false);
 
 		StartPickupPreview();
 		break;
@@ -71,6 +72,9 @@ void AItemBase::UpdateToState(EItemState State)
 	case EItemState::EIS_PreviewInterping:
 	{
 		bPreviewInterping = true;
+		// We want to keep these on while interping (they will get turned off once equipped)
+		SetCustomDepth(true);
+		SetGlowMaterial(true);
 		break;
 	}
 	case EItemState::EIS_Equipped:
@@ -85,7 +89,8 @@ void AItemBase::UpdateToState(EItemState State)
 		// Pickup Trigger
 		DisableProximityTrigger();
 
-		// HUD
+		// HUD & VFX
+		// fully disable all visuals (pickup widget, glow and outline materials)
 		SetPickupItemVisuals(false);
 		break;
 	}
@@ -108,7 +113,7 @@ void AItemBase::UpdateToState(EItemState State)
 		// Pickup Trigger
 		DisableProximityTrigger();
 
-		// HUD
+		// HUD & VFX
 		SetPickupItemVisuals(false);
 		break;
 	}
