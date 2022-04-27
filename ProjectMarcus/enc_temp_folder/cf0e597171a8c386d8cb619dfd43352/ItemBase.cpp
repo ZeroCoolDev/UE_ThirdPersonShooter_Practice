@@ -54,6 +54,9 @@ void AItemBase::UpdateToState(EItemState State)
 		
 		// Once we enter pickup waiting, kickoff the pulse timer
 		ResetPulseTimer();
+
+		// Once we drop turn the glow back on
+		SetGlowMaterial(true);
 		break;
 	}
 	case EItemState::EIS_PickUp:
@@ -83,7 +86,7 @@ void AItemBase::UpdateToState(EItemState State)
 		bPreviewInterping = true;
 		// We want to keep these on while interping (they will get turned off once equipped)
 		SetCustomDepth(true);
-		SetGlowMaterial(true);
+		SetGlowMaterial(false);
 		break;
 	}
 	case EItemState::EIS_Equipped:
@@ -101,6 +104,9 @@ void AItemBase::UpdateToState(EItemState State)
 		// HUD & VFX
 		// fully disable all visuals (pickup widget, glow and outline materials)
 		SetPickupItemVisuals(false);
+
+		// Just safety net turning it off
+		SetGlowMaterial(false);
 		break;
 	}
 	case EItemState::EIS_Drop:
@@ -134,7 +140,8 @@ void AItemBase::UpdateToState(EItemState State)
 void AItemBase::SetPickupItemVisuals(bool bIsVisible)
 {
 	SetCustomDepth(bIsVisible);
-	SetGlowMaterial(bIsVisible);
+	// Doing the opposite means we glow when NOT being looked at, and not when we're looked at
+	SetGlowMaterial(!bIsVisible);
 	SetPickupWidgetVisibility(bIsVisible);
 }
 
@@ -346,6 +353,9 @@ void AItemBase::StartPickupPreview()
 	if (GetWorld())
 	{
 		GetWorld()->GetTimerManager().SetTimer(ItemInterpHandle, this, &AItemBase::FinishPickupPreview, ItemPickupPreviewDuration);
+
+		// No need to run the pulse timer if we're picked up
+		GetWorld()->GetTimerManager().ClearTimer(PulseTimer);
 	}
 
 	// Store the angle between camera and item (so we know what constant angle offset to keep the item at relative to the camera if the player rotates during pickup)
@@ -463,24 +473,38 @@ void AItemBase::PlayEquipSound()
 
 void AItemBase::UpdatePulseCurveValues()
 {
-	if (ItemState == EItemState::EIS_PickupWaiting)
+	float ElapsedTime;
+	FVector CurveValue;
+
+	// Difference pulses based off whether its being actively picked up or not
+	switch (ItemState)
 	{
-		if (PulseCurve)
-		{
-			const float PulseCurveElapsedTime = GetWorldTimerManager().GetTimerElapsed(PulseTimer);
-			const FVector CurveVals = PulseCurve->GetVectorValue(PulseCurveElapsedTime);
-
-			const float GlowAmtThisFrame = CurveVals.X;
-			const float FresnelExpThisFrame = CurveVals.Y;
-			const float FresnelReflectThisFrame = CurveVals.Z;
-
-			if(DynamicMaterialInstance)
+		case EItemState::EIS_PickupWaiting:
+			if (PulseCurve)
 			{
-				DynamicMaterialInstance->SetScalarParameterValue(TEXT("GlowAmount"), GlowAmtThisFrame * GlowMatAlpha);
-				DynamicMaterialInstance->SetScalarParameterValue(TEXT("FresnelExponent"), FresnelExpThisFrame * FresnelExponent);
-				DynamicMaterialInstance->SetScalarParameterValue(TEXT("FresnelReflectFraction"), FresnelReflectThisFrame * FresnelReflect);
+				ElapsedTime = GetWorldTimerManager().GetTimerElapsed(PulseTimer);
+				CurveValue = PulseCurve->GetVectorValue(ElapsedTime);
 			}
-		}
+		break;
+		case EItemState::EIS_PreviewInterping:
+			if (InterpPulseCurve)
+			{
+				ElapsedTime = GetWorldTimerManager().GetTimerElapsed(ItemInterpHandle);
+				CurveValue = InterpPulseCurve->GetVectorValue(ElapsedTime);
+			}
+		break;
+	}
+
+
+	const float GlowAmtThisFrame = CurveValue.X;
+	const float FresnelExpThisFrame = CurveValue.Y;
+	const float FresnelReflectThisFrame = CurveValue.Z;
+
+	if (DynamicMaterialInstance)
+	{
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("GlowAmount"), GlowAmtThisFrame * GlowMatAlpha);
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("FresnelExponent"), FresnelExpThisFrame * FresnelExponent);
+		DynamicMaterialInstance->SetScalarParameterValue(TEXT("FresnelReflectFraction"), FresnelReflectThisFrame * FresnelReflect);
 	}
 }
 

@@ -203,6 +203,10 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	float PulseCurveDuration = 5.f;
 
+	// Curve to drive the Dynamic Material parameters when interping
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
+	class UCurveVector* InterpPulseCurve = nullptr;
+
 	FTimerHandle PulseTimer;
 
 };
