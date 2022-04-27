@@ -199,6 +199,7 @@ protected:
 	// Curve to drive the Dynamic Material parameters
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class UCurveVector* PulseCurve = nullptr;
+	FTimerHandle PulseTimer;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	float PulseCurveDuration = 5.f;
@@ -207,6 +208,6 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class UCurveVector* InterpPulseCurve = nullptr;
 
-	FTimerHandle PulseTimer;
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	class UTexture2D* IconBackground;
 };

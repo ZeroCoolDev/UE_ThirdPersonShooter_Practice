@@ -177,7 +177,14 @@ void AProjectMarcusCharacter::PickupItemAfterPreview(AItemBase* PickedupItem)
 {
 	if (AWeaponItem* WeaponItem = Cast<AWeaponItem>(PickedupItem))
 	{
-		SwapWeapon(WeaponItem);
+		if (Inventory.Num() < INVENTORY_CAPACITY)
+		{
+			Inventory.Add(WeaponItem);
+		}
+		else
+		{
+			SwapWeapon(WeaponItem);
+		}
 	}
 	
 	if (AAmmoItem* AmmoItem = Cast<AAmmoItem>(PickedupItem))
@@ -236,6 +243,7 @@ void AProjectMarcusCharacter::BeginPlay()
 	}
 
 	EquipWeapon(SpawnDefaultWeapon());
+	Inventory.Add(EquippedWeapon);
 
 	CurrentGamepadTurnRate = MoveData.GamepadTurnRate;
 	CurrentGamepadLookUpRate = MoveData.GamepadLookUpRate;

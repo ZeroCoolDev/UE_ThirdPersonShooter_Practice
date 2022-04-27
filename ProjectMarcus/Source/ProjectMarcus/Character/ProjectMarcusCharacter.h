@@ -421,6 +421,10 @@ private:
 	// Threshold for how close the player needs to look at (1 = directly at it, 0.5 = 50% between looking and not...etc)
 	float ItemPopupVisibilityThreshold = 0.99f;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	TArray<AItemBase*> Inventory;
+	const int INVENTORY_CAPACITY = 6;
+
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }
 	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCam; }
