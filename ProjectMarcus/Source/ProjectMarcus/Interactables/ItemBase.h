@@ -208,6 +208,11 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	class UCurveVector* InterpPulseCurve = nullptr;
 
+	// Background for this item in the inventory
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UTexture2D* IconBackground;
+
+	// Icon for this item in the inventory
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	class UTexture2D* IconItem;
 };
