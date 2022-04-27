@@ -54,9 +54,6 @@ void AItemBase::UpdateToState(EItemState State)
 		
 		// Once we enter pickup waiting, kickoff the pulse timer
 		ResetPulseTimer();
-
-		// Once we drop turn the glow back on
-		SetGlowMaterial(true);
 		break;
 	}
 	case EItemState::EIS_PickUp:
@@ -86,7 +83,7 @@ void AItemBase::UpdateToState(EItemState State)
 		bPreviewInterping = true;
 		// We want to keep these on while interping (they will get turned off once equipped)
 		SetCustomDepth(true);
-		SetGlowMaterial(false);
+		SetGlowMaterial(true);
 		break;
 	}
 	case EItemState::EIS_Equipped:
@@ -104,9 +101,6 @@ void AItemBase::UpdateToState(EItemState State)
 		// HUD & VFX
 		// fully disable all visuals (pickup widget, glow and outline materials)
 		SetPickupItemVisuals(false);
-
-		// Just safety net turning it off
-		SetGlowMaterial(false);
 		break;
 	}
 	case EItemState::EIS_Drop:
@@ -140,8 +134,7 @@ void AItemBase::UpdateToState(EItemState State)
 void AItemBase::SetPickupItemVisuals(bool bIsVisible)
 {
 	SetCustomDepth(bIsVisible);
-	// Doing the opposite means we glow when NOT being looked at, and not when we're looked at
-	SetGlowMaterial(!bIsVisible);
+	SetGlowMaterial(bIsVisible);
 	SetPickupWidgetVisibility(bIsVisible);
 }
 
