@@ -192,7 +192,6 @@ protected:
 	 * Rotate controller based off Mouse Y movement
 	 * @param Rate		The input value from mouse
 	 */
-	
 	void LookUpRate_Mouse(float Rate);
 
 	void SelectButtonPressed();
@@ -200,6 +199,16 @@ protected:
 	void SelectButtonReleased();
 
 	void ReloadButtonPressed();
+
+	void SwapEquippedWithInventory(int32 CurrentlyEquipped, int32 FromStorage);
+	void PreSwapInventoryItem(int32 CurrentIdx);
+	void FKeyPressed();
+	void OneKeyPressed();
+	void TwoKeyPressed();
+	void ThreeKeyPressed();
+	void FourKeyPressed();
+	void FiveKeyPressed();
+
 
 	/* Camera Zoom / Sensitivity */
 

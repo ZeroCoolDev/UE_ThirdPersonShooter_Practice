@@ -200,8 +200,8 @@ protected:
 
 	void ReloadButtonPressed();
 
-	void SwapEquippedWithInventory(int32 CurrentlyEquipped, int32 FromStorage);
-	void PreSwapInventoryItem(int32 CurrentIdx);
+	void SwapEquippedWithInventory(int32 IndexCurrentlyAt, int32 IndexToGoTo);
+	void PreSwapInventoryItem(int32 PressedIndex);
 	void FKeyPressed();
 	void OneKeyPressed();
 	void TwoKeyPressed();

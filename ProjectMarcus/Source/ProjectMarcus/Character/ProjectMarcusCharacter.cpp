@@ -336,7 +336,7 @@ void AProjectMarcusCharacter::ReloadButtonPressed()
 	ReloadWeapon();
 }
 
-void AProjectMarcusCharacter::SwapEquippedWithInventory(int32 CurrentlyEquipped, int32 FromStorage)
+void AProjectMarcusCharacter::SwapEquippedWithInventory(int32 IndexCurrentlyAt, int32 IndexToGoTo)
 {
 	if (CurrentlyEquipped == FromStorage || FromStorage >= Inventory.Num())
 	{
@@ -353,11 +353,11 @@ void AProjectMarcusCharacter::SwapEquippedWithInventory(int32 CurrentlyEquipped,
 	EquipWeapon(NewWeapon);
 }
 
-void AProjectMarcusCharacter::PreSwapInventoryItem(int32 CurrentIdx)
+void AProjectMarcusCharacter::PreSwapInventoryItem(int32 PressedIndex)
 {
-	if (EquippedWeapon->GetInventorySlotIndex() != CurrentIdx)
+	if (EquippedWeapon->GetInventorySlotIndex() != PressedIndex)
 	{
-		SwapEquippedWithInventory(EquippedWeapon->GetInventorySlotIndex(), CurrentIdx);
+		SwapEquippedWithInventory(EquippedWeapon->GetInventorySlotIndex(), PressedIndex);
 	}
 }
 /*TODO: there is a bug where the animation isn't playing correctly on swapping items*/
