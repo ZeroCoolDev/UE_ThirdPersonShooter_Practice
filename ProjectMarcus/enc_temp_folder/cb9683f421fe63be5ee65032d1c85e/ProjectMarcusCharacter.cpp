@@ -128,14 +128,6 @@ void AProjectMarcusCharacter::SetupPlayerInputComponent(UInputComponent* PlayerI
 		
 		// Reload
 		PlayerInputComponent->BindAction("Reload", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::ReloadButtonPressed);
-
-		// Inventory Slot Key Pressed
-		PlayerInputComponent->BindAction("FKey", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::FKeyPressed);
-		PlayerInputComponent->BindAction("1Key", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::OneKeyPressed);
-		PlayerInputComponent->BindAction("2Key", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::TwoKeyPressed);
-		PlayerInputComponent->BindAction("3Key", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::ThreeKeyPressed);
-		PlayerInputComponent->BindAction("4Key", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::FourKeyPressed);
-		PlayerInputComponent->BindAction("5Key", EInputEvent::IE_Pressed, this, &AProjectMarcusCharacter::FiveKeyPressed);
 	}
 }
 
@@ -336,61 +328,6 @@ void AProjectMarcusCharacter::ReloadButtonPressed()
 	ReloadWeapon();
 }
 
-void AProjectMarcusCharacter::SwapEquippedWithInventory(int32 CurrentlyEquipped, int32 FromStorage)
-{
-	if (CurrentlyEquipped == FromStorage || FromStorage >= Inventory.Num())
-	{
-		return;
-	}
-
-	AWeaponItem* WeaponToStore = EquippedWeapon;
-	if (WeaponToStore)
-	{
-		WeaponToStore->UpdateToState(EItemState::EIS_PickedUpNoEquip);
-	}
-
-	AWeaponItem* NewWeapon = Cast<AWeaponItem>(Inventory[FromStorage]);
-	EquipWeapon(NewWeapon);
-}
-
-void AProjectMarcusCharacter::PreSwapInventoryItem(int32 CurrentIdx)
-{
-	if (EquippedWeapon->GetInventorySlotIndex() != CurrentIdx)
-	{
-		SwapEquippedWithInventory(EquippedWeapon->GetInventorySlotIndex(), CurrentIdx);
-	}
-}
-/*TODO: there is a bug where the animation isn't playing correctly on swapping items*/
-void AProjectMarcusCharacter::FKeyPressed()
-{
-	PreSwapInventoryItem(0);
-}
-
-void AProjectMarcusCharacter::OneKeyPressed()
-{
-	PreSwapInventoryItem(1);
-}
-
-void AProjectMarcusCharacter::TwoKeyPressed()
-{
-	PreSwapInventoryItem(2);
-}
-
-void AProjectMarcusCharacter::ThreeKeyPressed()
-{
-	PreSwapInventoryItem(3);
-}
-
-void AProjectMarcusCharacter::FourKeyPressed()
-{
-	PreSwapInventoryItem(4);
-}
-
-void AProjectMarcusCharacter::FiveKeyPressed()
-{
-	PreSwapInventoryItem(5);
-}
-
 void AProjectMarcusCharacter::FireWeapon()
 {
 	if (EquippedWeapon == nullptr)
@@ -545,14 +482,6 @@ void AProjectMarcusCharacter::DropWeapon()
 
 void AProjectMarcusCharacter::SwapWeapon(AWeaponItem* WeaponToSwap)
 {
-	if (EquippedWeapon)
-	{
-		if (Inventory.Num() - 1 >= EquippedWeapon->GetInventorySlotIndex())
-		{
-			Inventory[EquippedWeapon->GetInventorySlotIndex()] = WeaponToSwap;
-			WeaponToSwap->SetInventorySlotIndex(EquippedWeapon->GetInventorySlotIndex());
-		}
-	}
 	DropWeapon();
 	EquipWeapon(WeaponToSwap);
 }
