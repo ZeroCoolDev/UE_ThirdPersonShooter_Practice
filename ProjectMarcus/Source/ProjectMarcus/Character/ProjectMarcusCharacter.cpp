@@ -320,6 +320,11 @@ void AProjectMarcusCharacter::LookUpRate_Mouse(float Rate)
 
 void AProjectMarcusCharacter::SelectButtonPressed()
 {
+	if (CombatState != ECombatState::ECS_Unoccupied)
+	{// We can only pick things up if we're doing nothing else
+		return;
+	}
+
 	if (CurrentlyFocusedItem)
 	{
 		CurrentlyFocusedItem->UpdateToState(EItemState::EIS_PickUp);
@@ -338,7 +343,7 @@ void AProjectMarcusCharacter::ReloadButtonPressed()
 
 void AProjectMarcusCharacter::SwapEquippedWithInventory(int32 IndexCurrentlyAt, int32 IndexToGoTo)
 {
-	if (CurrentlyEquipped == FromStorage || FromStorage >= Inventory.Num())
+	if (IndexCurrentlyAt == IndexToGoTo || IndexToGoTo >= Inventory.Num())
 	{
 		return;
 	}
@@ -349,12 +354,17 @@ void AProjectMarcusCharacter::SwapEquippedWithInventory(int32 IndexCurrentlyAt, 
 		WeaponToStore->UpdateToState(EItemState::EIS_PickedUpNoEquip);
 	}
 
-	AWeaponItem* NewWeapon = Cast<AWeaponItem>(Inventory[FromStorage]);
+	AWeaponItem* NewWeapon = Cast<AWeaponItem>(Inventory[IndexToGoTo]);
 	EquipWeapon(NewWeapon);
 }
 
 void AProjectMarcusCharacter::PreSwapInventoryItem(int32 PressedIndex)
 {
+	if (CombatState != ECombatState::ECS_Unoccupied)
+	{// We can only swap if we're not reloading if we're doing nothing else
+		return;
+	}
+
 	if (EquippedWeapon->GetInventorySlotIndex() != PressedIndex)
 	{
 		SwapEquippedWithInventory(EquippedWeapon->GetInventorySlotIndex(), PressedIndex);
