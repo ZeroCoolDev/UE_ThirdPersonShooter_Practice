@@ -74,6 +74,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item Properties", meta = (AllowPrivateAccess = "true"))
 	FName ClipBoneName = FName(TEXT("smg_clip"));
 
+	// Icon for this items ammo in the inventory
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	class UTexture2D* AmmoIcon;
+
 private:
 	FTimerHandle ThrowWeaponTimer;
 	
