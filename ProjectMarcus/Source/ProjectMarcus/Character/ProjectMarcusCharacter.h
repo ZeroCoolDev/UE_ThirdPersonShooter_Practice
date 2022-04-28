@@ -118,6 +118,8 @@ struct FPickupInterpLocationData
 	int32 NumItemsInterping;
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquipItemDelegate, int32, CurrentSlotIdx, int32, NewSlotIdx);
+
 UCLASS()
 class PROJECTMARCUS_API AProjectMarcusCharacter : public ACharacter
 {
@@ -424,6 +426,10 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	TArray<AItemBase*> Inventory;
 	const int INVENTORY_CAPACITY = 6;
+
+	// Sends slot info to inventory bar when equipping
+	UPROPERTY(BlueprintAssignable, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	FEquipItemDelegate EquipItemDelegate;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }

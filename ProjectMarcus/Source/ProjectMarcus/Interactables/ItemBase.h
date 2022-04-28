@@ -31,6 +31,7 @@ enum class EItemState : uint8
 	EIS_PickupWaiting UMETA(DisplayName = "WaitingForPickup"),
 	EIS_PickUp UMETA(DisplayName = "PickUp"),
 	EIS_PreviewInterping UMETA(DisplayName = "PreviewInterping"),
+	EIS_PickedUpNoEquip UMETA(DisplayName = "PickedUpNoEquip"),
 	EIS_Equipped UMETA(DisplayName = "Equipped"),
 	EIS_Drop	UMETA(DisplayName = "Drop"),
 	EIS_Falling UMETA(DisplayName = "Falling"),
@@ -58,6 +59,10 @@ public:
 	class USkeletalMeshComponent* GetItemMesh() { return ItemMesh; }
 
 	int32 GetItemCount() { return ItemCount; }
+
+	int32 GetInventorySlotIndex() { return InventorySlotIndex; }
+	void SetInventorySlotIndex(int32 Idx) { InventorySlotIndex = Idx; }
+
 
 protected:
 	// Called when the game starts or when spawned
@@ -215,4 +220,8 @@ protected:
 	// Icon for this item in the inventory
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UTexture2D* IconItem;
+
+	// Slot in the inventory array
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	int32 InventorySlotIndex = -1;
 };

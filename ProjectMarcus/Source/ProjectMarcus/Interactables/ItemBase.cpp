@@ -88,6 +88,24 @@ void AItemBase::UpdateToState(EItemState State)
 		SetCustomDepth(true);
 		break;
 	}
+	case EItemState::EIS_PickedUpNoEquip:
+	{
+		// Mesh
+		SetMeshVibility(true);
+		DisableMeshPhysycs();
+
+		// Pickup Trigger
+		DisableProximityTrigger();
+
+		// HUD & VFX
+		// fully disable all visuals (pickup widget, glow and outline materials)
+		SetPickupItemVisuals(false);
+
+		// Just safety net turning it off
+		SetGlowMaterial(false);
+
+		break;
+	}
 	case EItemState::EIS_Equipped:
 	{
 		// Equip SFX

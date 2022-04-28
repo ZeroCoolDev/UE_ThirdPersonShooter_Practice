@@ -179,7 +179,9 @@ void AProjectMarcusCharacter::PickupItemAfterPreview(AItemBase* PickedupItem)
 	{
 		if (Inventory.Num() < INVENTORY_CAPACITY)
 		{
+			WeaponItem->SetInventorySlotIndex(Inventory.Num());// the index of the new item will be the size of the inventory existing before it
 			Inventory.Add(WeaponItem);
+			WeaponItem->UpdateToState(EItemState::EIS_PickedUpNoEquip);
 		}
 		else
 		{
@@ -244,6 +246,7 @@ void AProjectMarcusCharacter::BeginPlay()
 
 	EquipWeapon(SpawnDefaultWeapon());
 	Inventory.Add(EquippedWeapon);
+	EquippedWeapon->SetInventorySlotIndex(0);
 
 	CurrentGamepadTurnRate = MoveData.GamepadTurnRate;
 	CurrentGamepadLookUpRate = MoveData.GamepadLookUpRate;
@@ -459,6 +462,9 @@ void AProjectMarcusCharacter::EquipWeapon(AWeaponItem* NewWeapon)
 				HandSocket->AttachActor(NewWeapon, SkeletalMesh);
 			}
 		}
+
+		// Inform UI of the change from old (equipped) to current (new)
+		EquipItemDelegate.Broadcast(EquippedWeapon == nullptr ? -1 : EquippedWeapon->GetInventorySlotIndex(), NewWeapon->GetInventorySlotIndex());
 
 		EquippedWeapon = NewWeapon;
 		EquippedWeapon->UpdateToState(EItemState::EIS_Equipped);
