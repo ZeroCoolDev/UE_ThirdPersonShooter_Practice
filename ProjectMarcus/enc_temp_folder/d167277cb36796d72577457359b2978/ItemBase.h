@@ -63,6 +63,7 @@ public:
 	int32 GetInventorySlotIndex() { return InventorySlotIndex; }
 	void SetInventorySlotIndex(int32 Idx) { InventorySlotIndex = Idx; }
 
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

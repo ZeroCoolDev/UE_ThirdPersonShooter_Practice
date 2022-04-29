@@ -90,9 +90,6 @@ void AItemBase::UpdateToState(EItemState State)
 	}
 	case EItemState::EIS_PickedUpNoEquip:
 	{
-		// TODO: If we want to play a sound on pikcup but no equip put that here
-		//PlayEquipSound();
-
 		// Mesh
 		SetMeshVibility(true);
 		DisableMeshPhysycs();
