@@ -356,6 +356,19 @@ void AProjectMarcusCharacter::SwapEquippedWithInventory(int32 IndexCurrentlyAt, 
 
 	AWeaponItem* NewWeapon = Cast<AWeaponItem>(Inventory[IndexToGoTo]);
 	EquipWeapon(NewWeapon);
+
+	CombatState = ECombatState::ECS_Equipping;
+
+	USkeletalMeshComponent* MeshComp = GetMesh();
+	if (MeshComp)
+	{
+		UAnimInstance* AnimInstance = MeshComp->GetAnimInstance();
+		if (AnimInstance && EquipMontage)
+		{
+			AnimInstance->Montage_Play(EquipMontage, 1.f);
+			AnimInstance->Montage_JumpToSection(FName("Equip"));
+		}
+	}
 }
 
 void AProjectMarcusCharacter::PreSwapInventoryItem(int32 PressedIndex)
@@ -706,6 +719,11 @@ void AProjectMarcusCharacter::ReleaseClip()
 	{
 		EquippedWeapon->SetMovingClip(false);
 	}
+}
+
+void AProjectMarcusCharacter::FinishEquipping()
+{
+	CombatState = ECombatState::ECS_Unoccupied;
 }
 
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)

@@ -85,6 +85,7 @@ enum class ECombatState : uint8
 	ECS_Unoccupied UMETA(DisplayName = "Unoccupied"),
 	ECS_FireTimerInProgress UMETA(DisplayName = "FiringInProgress"),
 	ECS_Reloading UMETA(DisplayName = "Reloading"),
+	ECS_Equipping UMETA(DisplayName = "Equipping"),
 	ECS_Max UMETA(DisplayName = "InvalidMax")
 };
 
@@ -266,6 +267,9 @@ protected:
 	UFUNCTION(BlueprintCallable)
 	void ReleaseClip();
 
+	UFUNCTION(BlueprintCallable)
+	void FinishEquipping();
+
 private:
 	// Smoothly change camera FOV based off if the player is zooming or not
 	void UpdateCameraZoom(float DeltaTime);
@@ -327,6 +331,9 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
 	UAnimMontage* ReloadMontage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+	UAnimMontage* EquipMontage;
 
 	// Particles spawned at bullet impact point
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
