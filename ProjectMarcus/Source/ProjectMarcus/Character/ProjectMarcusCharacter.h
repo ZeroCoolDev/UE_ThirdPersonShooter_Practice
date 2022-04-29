@@ -120,6 +120,7 @@ struct FPickupInterpLocationData
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FEquipItemDelegate, int32, CurrentSlotIdx, int32, NewSlotIdx);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FHighlightIconDelegate, int32, SlotIdx, bool, bStartAnimation);
 
 UCLASS()
 class PROJECTMARCUS_API AProjectMarcusCharacter : public ACharacter
@@ -269,6 +270,11 @@ protected:
 
 	UFUNCTION(BlueprintCallable)
 	void FinishEquipping();
+
+	int32 GetEmptyInventorySlot();
+
+	void HighlightInventorySlot();
+	void UnHighlightInventorySlot();
 
 private:
 	// Smoothly change camera FOV based off if the player is zooming or not
@@ -446,6 +452,14 @@ private:
 	// Sends slot info to inventory bar when equipping
 	UPROPERTY(BlueprintAssignable, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	FEquipItemDelegate EquipItemDelegate;
+
+	// Sends which index in the inventory should be highlighted
+	UPROPERTY(BlueprintAssignable, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	FHighlightIconDelegate HighlightIconDelegate;
+
+	// Index for the currently highlighted slot
+	UPROPERTY(VisibleAnywhere, BlueprintReadonly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	int32 HighlightedSlot = -1;
 
 public:
 	FORCEINLINE USpringArmComponent* GetCameraArm() const { return CameraArm; }

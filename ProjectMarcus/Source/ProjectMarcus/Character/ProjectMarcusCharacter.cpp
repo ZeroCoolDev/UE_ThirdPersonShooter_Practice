@@ -154,6 +154,7 @@ void AProjectMarcusCharacter::RemoveItemInRange(AItemBase* ItemOutOfRange)
 	if (ItemOutOfRange)
 	{
 		ItemOutOfRange->SetPickupItemVisuals(false);
+		UnHighlightInventorySlot();
 		ItemsInRange.Remove(ItemOutOfRange->GetUniqueID());
 		// If the item we are no longer in range of was our currently focused item, remove it
 		if (CurrentlyFocusedItem && ItemOutOfRange->GetUniqueID() == CurrentlyFocusedItem->GetUniqueID())
@@ -195,6 +196,9 @@ void AProjectMarcusCharacter::PickupItemAfterPreview(AItemBase* PickedupItem)
 		{
 			SwapWeapon(WeaponItem);
 		}
+
+		// Once we picked something up unhighlight
+		UnHighlightInventorySlot();
 	}
 	
 	if (AAmmoItem* AmmoItem = Cast<AAmmoItem>(PickedupItem))
@@ -726,6 +730,39 @@ void AProjectMarcusCharacter::FinishEquipping()
 	CombatState = ECombatState::ECS_Unoccupied;
 }
 
+int32 AProjectMarcusCharacter::GetEmptyInventorySlot()
+{
+	// Needed in case something is dropped from the inventory
+	for (uint32 i = 0, End = Inventory.Num(); i < End; ++i)
+	{
+		if (Inventory[i] == nullptr)
+		{
+			return i;
+		}
+	}
+
+	if (Inventory.Num() == INVENTORY_CAPACITY)
+	{
+		return Inventory.Num() - 1;
+	}
+
+	// The next free slot in the inventory
+	return Inventory.Num();
+}
+
+void AProjectMarcusCharacter::HighlightInventorySlot()
+{
+	const int32 NextEmptySlot = GetEmptyInventorySlot();
+	HighlightIconDelegate.Broadcast(NextEmptySlot, true);
+	HighlightedSlot = NextEmptySlot;
+}
+
+void AProjectMarcusCharacter::UnHighlightInventorySlot()
+{
+	HighlightIconDelegate.Broadcast(HighlightedSlot, false);
+	HighlightedSlot = -1;
+}
+
 void AProjectMarcusCharacter::UpdateCameraZoom(float DeltaTime)
 {
 	// Just lerping by A + (B-A) * (t * Speed)
@@ -792,7 +829,17 @@ void AProjectMarcusCharacter::CheckForItemsInRange()
 				if (LookingAtItemAmount >= ItemPopupVisibilityThreshold)
 				{
 					Item->SetPickupItemVisuals(true);
+					// TODO: this might need to change once we can drop items from the inventory
 					Item->SetSwapInsteadOfPickup(Inventory.Num() == INVENTORY_CAPACITY);
+					
+					// Highlight slot
+					if (HighlightedSlot < 0)
+					{
+						if (AWeaponItem* WeaponItem = Cast<AWeaponItem>(Item))
+						{
+							HighlightInventorySlot();
+						}
+					}
 					// Regardless if one was set already, update the currently focused item to the latest one looking at
 					CurrentlyFocusedItem = Item;
 				}
@@ -804,6 +851,15 @@ void AProjectMarcusCharacter::CheckForItemsInRange()
 						CurrentlyFocusedItem = nullptr;
 					}
 					Item->SetPickupItemVisuals(false);
+
+					// Unhighlight any slot
+					if (HighlightedSlot >= 0)
+					{
+						if (AWeaponItem* WeaponItem = Cast<AWeaponItem>(Item))
+						{
+							UnHighlightInventorySlot();
+						}
+					}
 				}
 
 				// If this is ammo try to auto pick it up
