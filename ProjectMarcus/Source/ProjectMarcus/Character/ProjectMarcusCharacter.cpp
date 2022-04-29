@@ -792,6 +792,7 @@ void AProjectMarcusCharacter::CheckForItemsInRange()
 				if (LookingAtItemAmount >= ItemPopupVisibilityThreshold)
 				{
 					Item->SetPickupItemVisuals(true);
+					Item->SetSwapInsteadOfPickup(Inventory.Num() == INVENTORY_CAPACITY);
 					// Regardless if one was set already, update the currently focused item to the latest one looking at
 					CurrentlyFocusedItem = Item;
 				}

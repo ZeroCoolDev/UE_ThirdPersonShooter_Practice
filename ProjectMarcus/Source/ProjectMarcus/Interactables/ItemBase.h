@@ -63,6 +63,8 @@ public:
 	int32 GetInventorySlotIndex() { return InventorySlotIndex; }
 	void SetInventorySlotIndex(int32 Idx) { InventorySlotIndex = Idx; }
 
+	void SetSwapInsteadOfPickup(bool bInSwapInsteadOfPickup) { bSwapInsteadOfPickup = bInSwapInsteadOfPickup; }
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -223,4 +225,7 @@ protected:
 	// Slot in the inventory array
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	int32 InventorySlotIndex = -1;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
+	bool bSwapInsteadOfPickup = false;
 };
