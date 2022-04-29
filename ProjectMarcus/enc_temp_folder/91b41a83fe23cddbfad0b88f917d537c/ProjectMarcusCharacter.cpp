@@ -373,7 +373,7 @@ void AProjectMarcusCharacter::SwapEquippedWithInventory(int32 IndexCurrentlyAt, 
 
 void AProjectMarcusCharacter::PreSwapInventoryItem(int32 PressedIndex)
 {
-	if (CombatState == ECombatState::ECS_Reloading)
+	if (CombatState != ECombatState::ECS_Unoccupied)
 	{// We can only swap if we're not reloading if we're doing nothing else
 		return;
 	}
