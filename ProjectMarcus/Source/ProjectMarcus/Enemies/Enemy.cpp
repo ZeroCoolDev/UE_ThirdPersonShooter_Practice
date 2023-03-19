@@ -16,6 +16,8 @@ void AEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 	
+	// Allow mesh to collide with bullet line traces
+	GetMesh()->SetCollisionResponseToChannel(ECollisionChannel::ECC_Visibility, ECollisionResponse::ECR_Block);//Set to whatever channel being used for bullets
 }
 
 // Called every frame
