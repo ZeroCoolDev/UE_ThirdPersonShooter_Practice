@@ -294,7 +294,7 @@ private:
 
 	// After firing a bullet get it's final impact point (either hits something or goes off infinitively far)
 	// returns false only if there was an error during calculation
-	bool GetBulletHitLocation(const FVector BarrelSocketLocation, FVector& OutHitLocation);
+	bool GetBulletHitLocation(const FVector BarrelSocketLocation, FHitResult& OutHit);
 
 	// Line trace from crosshairs (in world space). OutHitResult contains a hit if one occurred. OUtHitLocation contains the ending trace location whether it hit something or not.
 	bool TraceFromCrosshairs(FHitResult& OutHitResult, FVector& OutHitLocation);

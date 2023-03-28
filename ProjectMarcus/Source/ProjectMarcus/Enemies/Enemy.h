@@ -35,6 +35,5 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-
-
+	void OnBulletHit_Implementation(const FHitResult& HitResult) override;
 };

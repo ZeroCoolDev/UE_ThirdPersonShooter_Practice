@@ -915,6 +915,7 @@ void AProjectMarcusCharacter::SendBulletWithVfx()
 					if (BulletHitInterface)
 					{
 						BulletHitInterface->OnBulletHit_Implementation(BulletHitResult);
+						return;
 					}
 					else
 					{
@@ -923,15 +924,15 @@ void AProjectMarcusCharacter::SendBulletWithVfx()
 						{
 							UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, BulletHitResult.Location);
 						}
-					}
 
-					// Spawn trail particles
-					if (BulletTrailParticles)
-					{
-						UParticleSystemComponent* Trail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform);
-						if (Trail)
+						// Spawn trail particles
+						if (BulletTrailParticles)
 						{
-							Trail->SetVectorParameter("Target", BulletHitResult.Location); // makes it so the particles appear in a line from TraceStart  to TrailEndPoint
+							UParticleSystemComponent* Trail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform);
+							if (Trail)
+							{
+								Trail->SetVectorParameter("Target", BulletHitResult.Location); // makes it so the particles appear in a line from TraceStart  to TrailEndPoint
+							}
 						}
 					}
 				}
