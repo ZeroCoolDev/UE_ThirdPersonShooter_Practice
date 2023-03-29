@@ -6,7 +6,10 @@
 
 // Sets default values
 AEnemy::AEnemy()
+	: MaxHealth(100.f)
 {
+	Health = MaxHealth;
+
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
@@ -33,6 +36,13 @@ void AEnemy::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+}
+
+float AEnemy::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Health = FMath::Clamp(Health - Damage, 0.f, MaxHealth);
+
+	return Damage;
 }
 
 void AEnemy::OnBulletHit_Implementation(const FHitResult& HitResult)

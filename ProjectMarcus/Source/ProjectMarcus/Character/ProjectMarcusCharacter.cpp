@@ -10,6 +10,7 @@
 #include "ProjectMarcus/Interactables/WeaponItem.h"
 #include "ProjectMarcus/Interactables/AmmoItem.h"
 #include "ProjectMarcus/Interfaces/BulletHitInterface.h"
+#include "ProjectMarcus/Enemies/Enemy.h"
 
 // Sets default values
 AProjectMarcusCharacter::AProjectMarcusCharacter()
@@ -913,26 +914,28 @@ void AProjectMarcusCharacter::SendBulletWithVfx()
 				{
 					IBulletHitInterface* BulletHitInterface = Cast<IBulletHitInterface>(BulletHitResult.Actor.Get());
 					if (BulletHitInterface)
-					{
 						BulletHitInterface->OnBulletHit_Implementation(BulletHitResult);
-					}
-					else
-					{
-						// Spawn impact particles
-						if (BulletImpactParticles)
-						{
-							UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, BulletHitResult.Location);
-						}
-					}
 
-					// Spawn trail particles
-					if (BulletTrailParticles)
+					AEnemy* HitEnemy = Cast<AEnemy>(BulletHitResult.Actor.Get());
+					if (HitEnemy)
+						UGameplayStatics::ApplyDamage(BulletHitResult.Actor.Get(), EquippedWeapon->GetDamage(), GetController(), this, UDamageType::StaticClass());
+				}
+				else
+				{
+					// Spawn impact particles
+					if (BulletImpactParticles)
 					{
-						UParticleSystemComponent* Trail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform);
-						if (Trail)
-						{
-							Trail->SetVectorParameter("Target", BulletHitResult.Location); // makes it so the particles appear in a line from TraceStart  to TrailEndPoint
-						}
+						UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletImpactParticles, BulletHitResult.Location);
+					}
+				}
+
+				// Spawn trail particles
+				if (BulletTrailParticles)
+				{
+					UParticleSystemComponent* Trail = UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletTrailParticles, SocketTransform);
+					if (Trail)
+					{
+						Trail->SetVectorParameter("Target", BulletHitResult.Location); // makes it so the particles appear in a line from TraceStart  to TrailEndPoint
 					}
 				}
 			}

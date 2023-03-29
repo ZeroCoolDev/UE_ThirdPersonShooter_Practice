@@ -15,6 +15,8 @@ enum class EWeaponType : uint8
 	EWT_Max UMETA(Display = "InvalidMax")
 };
 
+// TODO: Use data table for weapon information
+
 /**
  * 
  */
@@ -51,6 +53,10 @@ public:
 
 	void SetMovingClip(bool Moving) { bMovingClip = Moving; }
 
+	float GetDamage() const { return Damage; }
+	float GetHeadshotDamage() const { return HeadshotDamage; }
+
+
 protected:
 	void StopFalling();
 
@@ -77,6 +83,13 @@ protected:
 	// Icon for this items ammo in the inventory
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Inventory", meta = (AllowPrivateAccess = "true"))
 	class UTexture2D* AmmoIcon;
+
+	// how much damage is applied on hit
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
+	float Damage;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Weapon Properties", meta = (AllowPrivateAccess = "true"))
+	float HeadshotDamage;
 
 private:
 	FTimerHandle ThrowWeaponTimer;
