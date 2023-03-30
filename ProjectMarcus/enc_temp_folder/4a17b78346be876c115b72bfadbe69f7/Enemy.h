@@ -34,9 +34,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = true))
 	float MaxHealth;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = true))
-	FString HeadBone;
-
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -47,6 +44,4 @@ public:
 	virtual void OnBulletHit_Implementation(const FHitResult& HitResult) override;
 
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
-
-	FORCEINLINE const FString& GetHeadBone() const { return HeadBone; }
 };
