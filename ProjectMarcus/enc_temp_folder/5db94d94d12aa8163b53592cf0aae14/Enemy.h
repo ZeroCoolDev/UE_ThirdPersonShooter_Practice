@@ -29,6 +29,8 @@ protected:
 
 	void Die();
 
+	void PlayHitMontage(FName Section, float PlayRate = 1.f);
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta= (AllowPrivateAccess = true))
 	class UParticleSystem* ImpactParticles;
@@ -48,8 +50,12 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Combat, meta = (AllowPrivateAccess = true))
 	FTimerHandle HealthBarTimer;
 
+	// Contains hit and death animations
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = true))
 	UAnimMontage* HitReactMontage;
+
+	FTimerHandle HitReactTimer;
+	float HitReactIntervalLength; // how long we allow a hit react to play before we play another
 
 public:	
 	// Called every frame

@@ -54,6 +54,12 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = true))
 	UAnimMontage* HitReactMontage;
 
+	FTimerHandle HitReactTimer;	
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = true))
+	float HitReactIntervalMin;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = true))
+	float HitReactIntervalMax;
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;

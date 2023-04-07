@@ -8,6 +8,8 @@
 AEnemy::AEnemy()
 	: MaxHealth(100.f)
 	, HealthBarDisplayTime(4.f)
+	, HitReactIntervalMin(0.25f)
+	, HitReactIntervalMax(2.f)
 {
 	Health = MaxHealth;
 
@@ -38,6 +40,12 @@ void AEnemy::Die()
 
 void AEnemy::PlayHitMontage(FName Section, float PlayRate /*= 1.f*/)
 {
+	if (GetWorldTimerManager().IsTimerActive(HitReactTimer))
+		return;
+
+	const float HitReactDelay = FMath::FRandRange(HitReactIntervalMin, HitReactIntervalMax);
+	GetWorldTimerManager().SetTimer(HitReactTimer, HitReactDelay, false);
+
 	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
 	if (AnimInstance)
 	{
