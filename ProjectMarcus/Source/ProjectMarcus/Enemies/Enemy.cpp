@@ -73,11 +73,26 @@ void AEnemy::DestroyHitNumber(UUserWidget* HitNumber)
 	HitNumber->RemoveFromParent();// Removes from viewport
 }
 
+void AEnemy::UpdateHitNumbers()
+{
+	for (TPair<UUserWidget*, FVector>& HitNumberPair : HitNumbers)
+	{
+		UUserWidget* HitNumber = HitNumberPair.Key;
+		const FVector HitLocation = HitNumberPair.Value;
+		
+		FVector2D OutScreenPosition;
+		UGameplayStatics::ProjectWorldToScreen(GetWorld()->GetFirstPlayerController(), HitLocation, OutScreenPosition);
+
+		HitNumber->SetPositionInViewport(OutScreenPosition);
+	}
+}
+
 // Called every frame
 void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	UpdateHitNumbers();
 }
 
 // Called to bind functionality to input
