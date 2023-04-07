@@ -90,5 +90,5 @@ public:
 	FORCEINLINE const FString& GetHeadBone() const { return HeadBone; }
 
 	UFUNCTION(BlueprintImplementableEvent)
-	void ShowHitNumber(int32 Damage, FVector HitLocation);
+	void ShowHitNumber(int32 Damage, FVector HitLocation, bool bHeadshot = false);
 };

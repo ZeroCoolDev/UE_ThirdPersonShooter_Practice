@@ -926,7 +926,7 @@ void AProjectMarcusCharacter::SendBulletWithVfx()
 						
 						UGameplayStatics::ApplyDamage(BulletHitResult.Actor.Get(), AppliedDamage, GetController(), this, UDamageType::StaticClass());
 					
-						HitEnemy->ShowHitNumber(AppliedDamage, BulletHitResult.Location);
+						HitEnemy->ShowHitNumber(AppliedDamage, BulletHitResult.Location, bIsHeadshot);
 					}
 
 					UE_LOG(LogTemp, Warning, TEXT("Hit component %s"), *BulletHitResult.BoneName.ToString());
