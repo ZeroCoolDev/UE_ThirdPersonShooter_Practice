@@ -31,6 +31,12 @@ protected:
 
 	void PlayHitMontage(FName Section, float PlayRate = 1.f);
 
+	UFUNCTION(BlueprintCallable)
+	void StoreHitNumber(UUserWidget* HitNumber, FVector HitLocation);
+
+	UFUNCTION()
+	void DestroyHitNumber(UUserWidget* HitNumber);
+
 private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta= (AllowPrivateAccess = true))
 	class UParticleSystem* ImpactParticles;
@@ -54,11 +60,19 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = true))
 	UAnimMontage* HitReactMontage;
 
-	FTimerHandle HitReactTimer;	
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = true))
 	float HitReactIntervalMin;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Combat, meta = (AllowPrivateAccess = true))
 	float HitReactIntervalMax;
+
+	FTimerHandle HitReactTimer;
+
+	UPROPERTY(VisibleAnywhere, Category = Combat, meta = (AllowPrivateAccess = true))
+	TMap<UUserWidget*, FVector> HitNumbers;
+
+	UPROPERTY(EditAnywhere, Category = Combat, meta = (AllowPrivateAccess = true))
+	float HitNumberLifetime;
 
 public:	
 	// Called every frame
@@ -72,4 +86,7 @@ public:
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 
 	FORCEINLINE const FString& GetHeadBone() const { return HeadBone; }
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void ShowHitNumber(int32 Damage, FVector HitLocation);
 };

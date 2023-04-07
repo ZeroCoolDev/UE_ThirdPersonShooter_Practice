@@ -920,13 +920,10 @@ void AProjectMarcusCharacter::SendBulletWithVfx()
 					if (HitEnemy)
 					{
 						float AppliedDamage = EquippedWeapon->GetDamage();
-						const bool bIsHeadshot = HitEnemy->GetHeadBone() == BulletHitResult.BoneName.ToString();
-						if (bIsHeadshot) // TODO: Don't like string compares here
+						if (HitEnemy->GetHeadBone() == BulletHitResult.BoneName.ToString()) // TODO: Don't like string compares here
 							AppliedDamage = EquippedWeapon->GetHeadshotDamage();
 						
 						UGameplayStatics::ApplyDamage(BulletHitResult.Actor.Get(), AppliedDamage, GetController(), this, UDamageType::StaticClass());
-					
-						HitEnemy->ShowHitNumber(AppliedDamage, BulletHitResult.Location);
 					}
 
 					UE_LOG(LogTemp, Warning, TEXT("Hit component %s"), *BulletHitResult.BoneName.ToString());

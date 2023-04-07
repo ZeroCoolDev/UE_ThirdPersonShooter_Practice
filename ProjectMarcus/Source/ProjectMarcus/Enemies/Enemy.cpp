@@ -3,6 +3,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundCue.h"
 #include "Particles/ParticleSystemComponent.h"
+#include "Blueprint/UserWidget.h"
 
 // Sets default values
 AEnemy::AEnemy()
@@ -10,6 +11,7 @@ AEnemy::AEnemy()
 	, HealthBarDisplayTime(4.f)
 	, HitReactIntervalMin(0.25f)
 	, HitReactIntervalMax(2.f)
+	, HitNumberLifetime(1.5f)
 {
 	Health = MaxHealth;
 
@@ -52,6 +54,23 @@ void AEnemy::PlayHitMontage(FName Section, float PlayRate /*= 1.f*/)
 		AnimInstance->Montage_Play(HitReactMontage, PlayRate);
 		AnimInstance->Montage_JumpToSection(Section, HitReactMontage);
 	}
+}
+
+void AEnemy::StoreHitNumber(UUserWidget* HitNumber, FVector HitLocation)
+{
+	HitNumbers.Add(HitNumber, HitLocation);
+
+	FTimerHandle HitNumberTimer;
+	FTimerDelegate HitNumberDelegate;
+	HitNumberDelegate.BindUFunction(this, FName("DestroyHitNumber"), HitNumber);
+
+	GetWorld()->GetTimerManager().SetTimer(HitNumberTimer, HitNumberDelegate, HitNumberLifetime, false);
+}
+
+void AEnemy::DestroyHitNumber(UUserWidget* HitNumber)
+{
+	HitNumbers.Remove(HitNumber);
+	HitNumber->RemoveFromParent();// Removes from viewport
 }
 
 // Called every frame
